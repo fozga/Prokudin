@@ -3,7 +3,6 @@ import numpy as np
 from PyQt5.QtGui import QImage
 
 def apply_adjustments(image, brightness=0, contrast=0):
-    """Apply brightness/contrast adjustments to grayscale image"""
     if image is None:
         return None
     
@@ -12,7 +11,6 @@ def apply_adjustments(image, brightness=0, contrast=0):
     return np.clip(img, 0, 255).astype(np.uint8)
 
 def combine_channels(channels, intensities):
-    """Combine RGB channels with intensity adjustments"""
     if any(channel is None for channel in channels):
         return None
     
@@ -23,7 +21,6 @@ def combine_channels(channels, intensities):
     return np.clip(combined, 0, 255).astype(np.uint8)
 
 def convert_to_qimage(image):
-    """Convert numpy array to QImage"""
     if image is None:
         return QImage()
     

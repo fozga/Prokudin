@@ -1,16 +1,29 @@
-from PyQt5.QtGui import QImage, QPixmap
-import cv2
+import numpy as np
+from PyQt5.QtCore import QRectF
+from PyQt5.QtGui import QPixmap
+from core.image_processing import combine_channels, convert_to_qimage
 
-def create_combined_preview(processed_images, intensities):
-    combined = np.zeros((*processed_images[0].shape, 3), dtype=np.float32)
-    for i in range(3):
-        combined[:, :, i] = processed_images[i].astype(np.float32) * (intensities[i] / 100)
-    return combined.astype(np.uint8)
+def update_main_display(main_window):
+    if main_window.show_combined:
+        show_combined_image(main_window)
+    else:
+        show_single_channel_image(main_window)
 
-def convert_to_qimage(image):
-    if len(image.shape) == 2:  # Grayscale
-        return QImage(image.data, image.shape[1], image.shape[0], 
-                     image.strides[0], QImage.Format_Grayscale8)
-    else:  # RGB
-        return QImage(image.data, image.shape[1], image.shape[0],
-                     image.strides[0], QImage.Format_RGB888)
+    if main_window.viewer._photo.pixmap():
+        pixmap = main_window.viewer._photo.pixmap()
+        main_window.viewer.setSceneRect(QRectF(0, 0, pixmap.width(), pixmap.height()))
+
+def show_combined_image(main_window):
+    if any(img is None for img in main_window.processed):
+        return
+    intensities = [ctrl.slider_intensity.value() for ctrl in main_window.controllers]
+    combined = combine_channels(main_window.processed, intensities)
+    q_img = convert_to_qimage(combined)
+    main_window.viewer.set_image(QPixmap.fromImage(q_img))
+
+def show_single_channel_image(main_window):
+    img = main_window.processed[main_window.current_channel]
+    if img is not None:
+        rgb_img = np.stack([img]*3, axis=-1)
+        q_img = convert_to_qimage(rgb_img)
+        main_window.viewer.set_image(QPixmap.fromImage(q_img))
