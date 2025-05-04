@@ -2,11 +2,6 @@ import cv2
 import numpy as np
 
 def align_images(original_images):
-    """
-    Aligns green and blue channels to the red channel using ORB features and affine transformation.
-    :param original_images: list of 3 grayscale numpy arrays [R, G, B]
-    :return: list of aligned images [R, G_aligned, B_aligned]
-    """
     # Start with copies of the originals
     aligned = [img.copy() for img in original_images]
 

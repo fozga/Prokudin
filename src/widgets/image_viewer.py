@@ -19,7 +19,6 @@ class ImageViewer(QGraphicsView):
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
 
     def toggle_view(self):
-        """Toggle between fit-to-view and original size"""
         self._fit_to_view = not self._fit_to_view
         if self._fit_to_view:
             self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
