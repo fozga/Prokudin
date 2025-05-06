@@ -32,3 +32,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
+
+# TODO  Implement async processing
+# TODO  Add status bar and feedback
+# TODO  Add type/dimension checks in processing methods

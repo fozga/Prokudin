@@ -51,7 +51,9 @@ def align_images(original_images):
 
             # Estimate partial affine transform (rotation, translation, scaling)
             M, _ = cv2.estimateAffinePartial2D(dst_pts, src_pts)
-            if M is not None:
+            if M is None:
+                raise AlignmentError(f"Failed to estimate transformation for channel {i}")
+            else:
                 # Apply transformation using reference channel dimensions
                 aligned[i] = cv2.warpAffine(
                     original_images[i], M,

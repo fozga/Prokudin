@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 from PyQt5.QtGui import QImage
 
-# TODO  Implement async processing
-
 def apply_adjustments(image, brightness=0, contrast=0):
     """
     Applies brightness and contrast adjustments to a grayscale image.
