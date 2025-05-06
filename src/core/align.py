@@ -23,15 +23,17 @@ def align_images(original_images):
             bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
             matches = bf.match(descriptors[0], descriptors[i])
 
-            if len(matches) > 10:
-                src_pts = np.float32([keypoints[0][m.queryIdx].pt for m in matches]).reshape(-1,1,2)
-                dst_pts = np.float32([keypoints[i][m.trainIdx].pt for m in matches]).reshape(-1,1,2)
+            MIN_MATCHES = 50  # Configurable threshold
+            if len(matches) < MIN_MATCHES:
+                raise AlignmentError(f"Insufficient matches ({len(matches)}/{MIN_MATCHES})")
+            src_pts = np.float32([keypoints[0][m.queryIdx].pt for m in matches]).reshape(-1,1,2)
+            dst_pts = np.float32([keypoints[i][m.trainIdx].pt for m in matches]).reshape(-1,1,2)
 
-                # Estimate affine transform from G/B to R
-                M, _ = cv2.estimateAffinePartial2D(dst_pts, src_pts)
-                if M is not None:
-                    aligned[i] = cv2.warpAffine(
-                        original_images[i], M,
-                        (original_images[0].shape[1], original_images[0].shape[0])
-                    )
+            # Estimate affine transform from G/B to R
+            M, _ = cv2.estimateAffinePartial2D(dst_pts, src_pts)
+            if M is not None:
+                aligned[i] = cv2.warpAffine(
+                    original_images[i], M,
+                    (original_images[0].shape[1], original_images[0].shape[0])
+                )
     return aligned

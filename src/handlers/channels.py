@@ -12,6 +12,7 @@ def load_channel(main_window, channel_idx):
             main_window.aligned = align_images(main_window.original_images)
             main_window.processed = [img.copy() for img in main_window.aligned]
             for i in range(3):
+                adjust_channel(main_window, i)
                 update_channel_preview(main_window, i)
         else:
             update_channel_preview(main_window, channel_idx)
