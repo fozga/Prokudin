@@ -1,4 +1,5 @@
 numpy
-opencv-python
-Pillow
+opencv-python-headless
 PyQt5
+Pillow
+rawpy
