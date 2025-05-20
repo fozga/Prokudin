@@ -1,3 +1,8 @@
+"""
+Image viewer widget for the RGB Channel Processor application.
+
+This module defines the ImageViewer class, a custom QGraphicsView for displaying images with zoom, pan, and cropping capabilities.
+"""
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem
 from PyQt5.QtCore import Qt, QRectF, QPointF, QRect
 from PyQt5.QtGui import QPainter, QPixmap, QPen, QColor
@@ -180,6 +185,15 @@ class ImageViewer(QGraphicsView):
         super().mouseReleaseEvent(event)
 
     def mouseMoveEvent(self, event):
+        """
+        Handles mouse move events.
+
+        - Updates the cursor based on the handle under the mouse.
+        - Updates the crop rectangle based on mouse movement.
+
+        Args:
+            event (QMouseEvent): The mouse move event.
+        """
         if self._crop_mode:
             if self._dragging and self._crop_rect:
                 current_pos = self.mapToScene(event.pos())
@@ -202,17 +216,20 @@ class ImageViewer(QGraphicsView):
         super().mouseMoveEvent(event)
 
     def enterEvent(self, event):
+        """Handle mouse enter events to ensure cursor is updated."""
         if self._crop_mode:
             handle = self._get_handle_at(event.pos())
             self._update_cursor_for_handle(handle)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
+        """Handle mouse leave events to reset cursor."""
         if self._crop_mode:
             self.setCursor(Qt.ArrowCursor)
         super().leaveEvent(event)
 
     def _update_cursor_for_handle(self, handle):
+        """Update cursor based on the handle under the mouse."""
         if self._dragging and self._drag_handle == 'move':
             self.setCursor(Qt.ClosedHandCursor)
         elif handle == 'move':
@@ -231,6 +248,16 @@ class ImageViewer(QGraphicsView):
         QApplication.processEvents()
 
     def set_crop_mode(self, enabled):
+        """
+        Enables or disables crop mode in the image viewer.
+
+        Args:
+            enabled (bool): True to enable crop mode, False to disable it.
+
+        Behavior:
+            - Initializes the crop rectangle if enabling crop mode.
+            - Discards the temporary crop rectangle when disabling crop mode.
+        """
         self._crop_mode = enabled
         if enabled:
             if self._photo.pixmap():
@@ -257,19 +284,37 @@ class ImageViewer(QGraphicsView):
         self.viewport().update()
 
     def confirm_crop(self):
+        """
+        Confirms the current crop rectangle.
+
+        - Saves the crop rectangle for future use.
+        - Exits crop mode.
+        """
         if self._crop_rect:
             self._saved_crop_rect = QRect(self._crop_rect)
         self.set_crop_mode(False)
 
     def cancel_crop(self):
+        """
+        Cancels the current crop operation.
+
+        - Discards the temporary crop rectangle.
+        - Exits crop mode.
+        """
         self._crop_rect = None
         self.set_crop_mode(False)
 
     def set_crop_rect(self, rect):
+        """
+        Sets the crop rectangle for the image viewer and triggers a viewport update.
+        Args:
+            rect (QRect): The rectangle defining the crop area.
+        """
         self._crop_rect = rect
         self.viewport().update()
 
     def set_crop_ratio(self, ratio):
+        
         if not self._crop_rect:
             self._crop_ratio = ratio
             return
@@ -281,6 +326,7 @@ class ImageViewer(QGraphicsView):
         self._adjust_crop_rect_to_ratio()
 
     def _adjust_crop_rect_to_ratio(self):
+        """Adjust the current crop rectangle to maintain the aspect ratio."""
         if not self._crop_ratio or not self._crop_rect:
             return
 
@@ -614,6 +660,7 @@ class ImageViewer(QGraphicsView):
                 self._crop_rect = new_rect
 
     def _constrain_crop_rect(self):
+        """Constrain the crop rectangle to stay within image bounds."""
         if not self._crop_rect or not self._photo:
             return
 
@@ -644,6 +691,7 @@ class ImageViewer(QGraphicsView):
             self._adjust_crop_rect_to_ratio()
 
     def drawForeground(self, painter, rect):
+        """Draw the crop rectangle and handles when in crop mode."""
         if not self._crop_mode or not self._crop_rect:
             return
 

@@ -1,3 +1,8 @@
+"""
+Channel controller widget for the RGB Channel Processor application.
+
+This module defines the ChannelController class, which provides UI controls for loading, adjusting, and previewing a single RGB channel.
+"""
 from PyQt5.QtWidgets import QGroupBox, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap

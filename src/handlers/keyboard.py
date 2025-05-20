@@ -1,3 +1,8 @@
+"""
+Keyboard event handler utilities for the RGB Channel Processor application.
+
+This module provides functions to handle keyboard shortcuts for channel switching and display mode toggling in the main window.
+"""
 from PyQt5.QtCore import Qt
 from handlers.display import update_main_display
 

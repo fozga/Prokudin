@@ -1,3 +1,8 @@
+"""
+Image processing utilities for channel adjustment and combination.
+
+This module provides functions for brightness/contrast adjustment, channel combination, and conversion to QImage for display in PyQt5 GUIs.
+"""
 import cv2
 import numpy as np
 from PyQt5.QtGui import QImage

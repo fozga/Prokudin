@@ -73,15 +73,19 @@ def update_channel_preview(main_window, channel_idx):
 
 def show_single_channel(main_window, channel_idx):
     """
-    Switches the main display to show only a single color channel.
+    Updates the main window to display a single channel.
+
+    This function sets the main window to show only the specified channel
+    by disabling the combined view and updating the current channel index.
+    It then refreshes the main display to reflect the changes.
 
     Args:
-        main_window: Reference to the main application window.
-        channel_idx (int): Index of the channel to display (0=R, 1=G, 2=B).
+        main_window: The main application window object that contains the
+                     display and state information.
+        channel_idx (int): The index of the channel to be displayed.
 
-    Behavior:
-        - Sets the display mode to single-channel.
-        - Updates the main display to reflect the change.
+    Returns:
+        None
     """
     main_window.show_combined = False
     main_window.current_channel = channel_idx

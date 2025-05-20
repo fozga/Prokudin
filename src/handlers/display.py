@@ -1,3 +1,8 @@
+"""
+Display handler utilities for updating the main image viewer in the application.
+
+This module provides functions to update the main display area, showing either the combined RGB image or a single channel, with support for cropping and intensity adjustments.
+"""
 import numpy as np
 from PyQt5.QtCore import QRectF
 from PyQt5.QtGui import QPixmap
@@ -5,14 +10,14 @@ from core.image_processing import combine_channels, convert_to_qimage
 
 def update_main_display(main_window):
     """
-    Updates the main image display area based on the current application state.
+    Updates the main display of the application based on the current state of the main window.
 
-    Depending on whether the user wants to view the combined RGB image or a single channel,
-    this function delegates to the appropriate display function. It also ensures that the
-    scene rectangle in the viewer matches the displayed image size.
+    This function determines whether to display a combined image or a single channel image
+    depending on the `show_combined` attribute of the `main_window`. It also adjusts the
+    scene rectangle of the viewer to match the dimensions of the displayed pixmap, if available.
 
     Args:
-        main_window: Reference to the main application window containing image data and UI state.
+        main_window: The main window object containing the display settings and viewer.
     """
     if main_window.show_combined:
         show_combined_image(main_window)

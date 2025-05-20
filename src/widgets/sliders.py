@@ -1,3 +1,8 @@
+"""
+Custom slider widget for the RGB Channel Processor application.
+
+This module defines the ResetSlider class, a QSlider subclass that emits a signal on double-click for quick reset functionality.
+"""
 from PyQt5.QtWidgets import QSlider
 from PyQt5.QtCore import pyqtSignal
 

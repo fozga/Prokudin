@@ -2,6 +2,12 @@ import cv2
 import numpy as np
 
 class AlignmentError(Exception):
+    """
+    Exception raised when image alignment fails due to insufficient feature matches or transformation errors.
+
+    Attributes:
+        message (str): Explanation of the error.
+    """
     pass
 
 def align_images(original_images):

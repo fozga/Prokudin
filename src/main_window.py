@@ -1,3 +1,8 @@
+"""
+Main application window for the RGB Channel Processor.
+
+This module defines the MainWindow class, which manages the overall GUI layout, application state, and user interactions for the RGB Channel Processor.
+"""
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
                              QToolBar, QAction, QComboBox, QPushButton)
 from PyQt5.QtCore import Qt, QRect
@@ -113,6 +118,13 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def toggle_crop_mode(self):
+        """
+        Toggles the crop mode in the application.
+
+        - Enables crop mode if currently disabled.
+        - Displays crop controls and initializes the crop rectangle.
+        - Uses the last saved crop rectangle if available.
+        """
         if self.crop_mode:
             return
         self.crop_mode = True
@@ -140,6 +152,12 @@ class MainWindow(QMainWindow):
         update_main_display(self)
 
     def cancel_crop(self):
+        """
+        Cancels the current crop operation.
+
+        - Exits crop mode without applying changes.
+        - Restores the last saved crop rectangle if available.
+        """
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
@@ -152,6 +170,12 @@ class MainWindow(QMainWindow):
         update_main_display(self)
 
     def set_crop_ratio(self, index):
+        """
+        Sets the aspect ratio for the crop rectangle.
+
+        - Adjusts the crop rectangle to maintain the selected aspect ratio.
+        - Updates the viewer to reflect the new ratio.
+        """
         self.crop_ratio = self.crop_ratio_combo.currentData()
         # Always get the current rectangle from the viewer
         current_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
@@ -169,6 +193,10 @@ class MainWindow(QMainWindow):
         update_main_display(self)
 
     def _get_aspect_crop_rect(self, rect, ratio):
+        """
+        Returns the largest rectangle with the given aspect ratio that fits within the given rect,
+        centered at the same point as the original rect.
+        """
         if not rect or not ratio:
             return rect
         orig_w = rect.width()
@@ -188,6 +216,12 @@ class MainWindow(QMainWindow):
         return QRect(new_left, new_top, new_w, new_h)
 
     def apply_crop(self):
+        """
+        Applies the current crop rectangle to the processed images.
+
+        - Saves the crop rectangle for future use.
+        - Exits crop mode and updates the main display.
+        """
         crop_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
         if not crop_rect or not any(img is not None for img in self.processed):
             return

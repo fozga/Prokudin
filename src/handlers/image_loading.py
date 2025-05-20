@@ -1,3 +1,8 @@
+"""
+Image loading utilities for RAW Sony ARW files.
+
+This module provides functions to load and preprocess RAW images for use in the RGB Channel Processor application.
+"""
 import rawpy
 import cv2
 from PyQt5.QtWidgets import QFileDialog
