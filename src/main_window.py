@@ -115,6 +115,8 @@ class MainWindow(QMainWindow):
     def toggle_crop_mode(self):
         if self.crop_mode:
             return
+        if not any(img is not None for img in self.processed):
+            return  # Add error message in UI
         self.crop_mode = True
         self.crop_mode_btn.setVisible(False)
         self.crop_controls_widget.setVisible(True)
