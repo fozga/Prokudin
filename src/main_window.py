@@ -12,6 +12,7 @@ Cross-references:
     - core.image_processing: Image combination and adjustment utilities.
 """
 
+
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
                              QToolBar, QAction, QComboBox, QPushButton)
 from PyQt5.QtCore import Qt, QRect
@@ -170,6 +171,8 @@ class MainWindow(QMainWindow):
         """
         if self.crop_mode:
             return
+        if not any(img is not None for img in self.processed):
+            return  # Add error message in UI
         self.crop_mode = True
         self.crop_mode_btn.setVisible(False)
         self.crop_controls_widget.setVisible(True)
