@@ -2,7 +2,12 @@
 Channel controller widget for the RGB Channel Processor application.
 
 This module defines the ChannelController class, which provides UI controls for loading, adjusting, and previewing a single RGB channel.
+
+Cross-references:
+    - main_window.MainWindow: Instantiates ChannelController for each channel.
+    - handlers.channels: Connects to load_channel, adjust_channel, update_channel_preview.
 """
+
 from PyQt5.QtWidgets import QGroupBox, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
@@ -26,6 +31,10 @@ class ChannelController(QGroupBox):
         slider_brightness (ResetSlider): Slider for brightness adjustment.
         slider_contrast (ResetSlider): Slider for contrast adjustment.
         slider_intensity (ResetSlider): Slider for intensity adjustment.
+
+    Cross-references:
+        - main_window.MainWindow: Used for each channel.
+        - handlers.channels: Connected to channel logic.
     """
     def __init__(self, channel_name, color, parent=None):
         """
@@ -35,6 +44,9 @@ class ChannelController(QGroupBox):
             channel_name (str): Name of the channel ('red', 'green', 'blue').
             color (Qt.GlobalColor): Qt color constant representing the channel.
             parent (QWidget, optional): Parent widget.
+
+        Returns:
+            None
         """
         super().__init__(parent)
         self.channel_name = channel_name
@@ -45,6 +57,12 @@ class ChannelController(QGroupBox):
     def init_ui(self):
         """
         Sets up the layout, widgets, and sliders for the channel controller.
+
+        Args:
+            self (ChannelController): The instance of the channel controller.
+
+        Returns:
+            None
         """
         self.setTitle(self.channel_name.capitalize())
         layout = QVBoxLayout()
@@ -79,7 +97,6 @@ class ChannelController(QGroupBox):
     def create_slider(self, min_val, max_val, default):
         """
         Creates a horizontal slider with the specified range and default value.
-        The slider resets to the default value on double-click.
 
         Args:
             min_val (int): Minimum slider value.
@@ -101,7 +118,11 @@ class ChannelController(QGroupBox):
         """
         Updates the preview label with the current processed image.
 
-        The image is resized to fit the preview area (160x120) and converted to a QPixmap.
+        Args:
+            self (ChannelController): The instance of the channel controller.
+
+        Returns:
+            None
         """
         if self.processed_image is not None:
             preview = cv2.resize(self.processed_image, (160, 120))

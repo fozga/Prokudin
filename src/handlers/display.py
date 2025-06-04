@@ -12,12 +12,11 @@ def update_main_display(main_window):
     """
     Updates the main display of the application based on the current state of the main window.
 
-    This function determines whether to display a combined image or a single channel image
-    depending on the `show_combined` attribute of the `main_window`. It also adjusts the
-    scene rectangle of the viewer to match the dimensions of the displayed pixmap, if available.
-
     Args:
-        main_window: The main window object containing the display settings and viewer.
+        main_window (QMainWindow): The main window object containing the display settings and viewer.
+
+    Returns:
+        None
     """
     if main_window.show_combined:
         show_combined_image(main_window)
@@ -32,11 +31,11 @@ def show_combined_image(main_window):
     """
     Displays the combined RGB image in the main viewer.
 
-    Combines the three processed channels using their respective intensity slider values,
-    converts the result to a QImage, and sets it in the viewer.
-
     Args:
-        main_window: Reference to the main application window.
+        main_window (QMainWindow): Reference to the main application window.
+
+    Returns:
+        None
     """
     if any(img is None for img in main_window.processed):
         return
@@ -67,11 +66,11 @@ def show_single_channel_image(main_window):
     """
     Displays a single selected channel as a grayscale image in the main viewer.
 
-    The selected channel is duplicated across RGB for display purposes, converted to QImage,
-    and shown in the viewer.
-
     Args:
-        main_window: Reference to the main application window.
+        main_window (QMainWindow): Reference to the main application window.
+
+    Returns:
+        None
     """
     img = main_window.processed[main_window.current_channel]
     if img is not None:

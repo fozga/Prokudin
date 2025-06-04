@@ -1,3 +1,14 @@
+"""
+Channel handling utilities for the RGB Channel Processor.
+
+Cross-references:
+    - handlers.image_loading: RAW image loading.
+    - core.align: Channel alignment.
+    - core.image_processing: Channel adjustments.
+    - handlers.display: Main display update.
+    - widgets.channel_controller.ChannelController: Per-channel UI.
+"""
+
 from handlers.image_loading import load_raw_image
 from core.align import align_images
 from core.image_processing import apply_adjustments
@@ -9,15 +20,18 @@ def load_channel(main_window, channel_idx):
     and triggers alignment and preview updates.
 
     Args:
-        main_window: Reference to the main application window containing image state and UI.
+        main_window (QMainWindow): Reference to the main application window containing image state and UI.
         channel_idx (int): Index of the channel to load (0=R, 1=G, 2=B).
 
-    Behavior:
-        - Opens a file dialog for the user to select a RAW image.
-        - Stores the loaded image in main_window.original_images and main_window.processed.
-        - If all three channels are loaded, aligns all channels and updates previews for each.
-        - Otherwise, updates the preview for the loaded channel only.
-        - Updates the main display after loading.
+    Returns:
+        None
+
+    Cross-references:
+        - load_raw_image
+        - align_images
+        - adjust_channel
+        - update_channel_preview
+        - update_main_display
     """
     image = load_raw_image(main_window)
     if image is not None:
@@ -38,13 +52,16 @@ def adjust_channel(main_window, channel_idx):
     Applies brightness and contrast adjustments to the specified channel and updates its preview.
 
     Args:
-        main_window: Reference to the main application window.
+        main_window (QMainWindow): Reference to the main application window.
         channel_idx (int): Index of the channel to adjust (0=R, 1=G, 2=B).
 
-    Behavior:
-        - Reads brightness and contrast values from the channel's sliders.
-        - Applies adjustments to the aligned image for this channel.
-        - Updates the processed image, channel preview, and main display.
+    Returns:
+        None
+
+    Cross-references:
+        - apply_adjustments
+        - update_channel_preview
+        - update_main_display
     """
     if main_window.aligned[channel_idx] is not None:
         brightness = main_window.controllers[channel_idx].slider_brightness.value()
@@ -60,12 +77,14 @@ def update_channel_preview(main_window, channel_idx):
     Updates the preview image for a specific channel controller.
 
     Args:
-        main_window: Reference to the main application window.
+        main_window (QMainWindow): Reference to the main application window.
         channel_idx (int): Index of the channel to update (0=R, 1=G, 2=B).
 
-    Behavior:
-        - Sets the processed image for the channel controller.
-        - Refreshes the preview display in the UI.
+    Returns:
+        None
+
+    Cross-references:
+        - ChannelController.update_preview
     """
     controller = main_window.controllers[channel_idx]
     controller.processed_image = main_window.processed[channel_idx]
@@ -80,12 +99,14 @@ def show_single_channel(main_window, channel_idx):
     It then refreshes the main display to reflect the changes.
 
     Args:
-        main_window: The main application window object that contains the
-                     display and state information.
+        main_window (QMainWindow): The main application window object that contains the display and state information.
         channel_idx (int): The index of the channel to be displayed.
 
     Returns:
         None
+
+    Cross-references:
+        - update_main_display
     """
     main_window.show_combined = False
     main_window.current_channel = channel_idx

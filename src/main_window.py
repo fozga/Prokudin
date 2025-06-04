@@ -2,7 +2,16 @@
 Main application window for the RGB Channel Processor.
 
 This module defines the MainWindow class, which manages the overall GUI layout, application state, and user interactions for the RGB Channel Processor.
+
+Cross-references:
+    - widgets.image_viewer.ImageViewer: Main image display widget.
+    - widgets.channel_controller.ChannelController: Per-channel controls.
+    - handlers.channels: Channel loading and adjustment logic.
+    - handlers.display: Main display update logic.
+    - handlers.keyboard: Keyboard shortcut handling.
+    - core.image_processing: Image combination and adjustment utilities.
 """
+
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
                              QToolBar, QAction, QComboBox, QPushButton)
 from PyQt5.QtCore import Qt, QRect
@@ -19,12 +28,25 @@ class MainWindow(QMainWindow):
 
     This window manages the overall GUI layout, holds the state of loaded and processed images,
     and connects user interactions (buttons, sliders, keyboard) to the processing logic.
+
+    Related components:
+        - ImageViewer (widgets.image_viewer): Displays the main image.
+        - ChannelController (widgets.channel_controller): Controls for each RGB channel.
+        - handlers.channels: Functions for loading and adjusting channels.
+        - handlers.display: Functions for updating the main display.
+        - handlers.keyboard: Keyboard shortcut handling.
     """
     
     def __init__(self):
         """
         Initialize the main window, set up the title, geometry, internal state,
         and construct the user interface.
+
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
         """
         super().__init__()
         self.setWindowTitle("RGB Channel Processor")
@@ -49,9 +71,20 @@ class MainWindow(QMainWindow):
         """
         Build the main UI layout: image viewer and channel controllers.
 
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
+
         - Adds an ImageViewer widget for displaying images.
         - Adds three ChannelController widgets (R, G, B) with sliders and load buttons.
         - Connects controller signals to appropriate handler functions.
+
+        Cross-references:
+            - ImageViewer
+            - ChannelController
+            - handlers.channels.load_channel, adjust_channel, update_channel_preview, show_single_channel
         """
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
@@ -121,9 +154,19 @@ class MainWindow(QMainWindow):
         """
         Toggles the crop mode in the application.
 
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
+
         - Enables crop mode if currently disabled.
         - Displays crop controls and initializes the crop rectangle.
         - Uses the last saved crop rectangle if available.
+
+        Cross-references:
+            - ImageViewer.set_crop_mode
+            - update_main_display
         """
         if self.crop_mode:
             return
@@ -155,8 +198,18 @@ class MainWindow(QMainWindow):
         """
         Cancels the current crop operation.
 
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
+
         - Exits crop mode without applying changes.
         - Restores the last saved crop rectangle if available.
+
+        Cross-references:
+            - ImageViewer.set_crop_mode
+            - update_main_display
         """
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
@@ -173,8 +226,19 @@ class MainWindow(QMainWindow):
         """
         Sets the aspect ratio for the crop rectangle.
 
+        Args:
+            self (MainWindow): The instance of the main window.
+            index (int): The index of the selected aspect ratio in the combo box.
+
+        Returns:
+            None
+
         - Adjusts the crop rectangle to maintain the selected aspect ratio.
         - Updates the viewer to reflect the new ratio.
+
+        Cross-references:
+            - ImageViewer.set_crop_ratio
+            - update_main_display
         """
         self.crop_ratio = self.crop_ratio_combo.currentData()
         # Always get the current rectangle from the viewer
@@ -196,6 +260,17 @@ class MainWindow(QMainWindow):
         """
         Returns the largest rectangle with the given aspect ratio that fits within the given rect,
         centered at the same point as the original rect.
+
+        Args:
+            self (MainWindow): The instance of the main window.
+            rect (QRect): The original rectangle.
+            ratio (tuple): The desired aspect ratio as (width, height).
+
+        Returns:
+            QRect: The adjusted rectangle.
+
+        Cross-references:
+            - set_crop_ratio
         """
         if not rect or not ratio:
             return rect
@@ -219,8 +294,18 @@ class MainWindow(QMainWindow):
         """
         Applies the current crop rectangle to the processed images.
 
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
+
         - Saves the crop rectangle for future use.
         - Exits crop mode and updates the main display.
+
+        Cross-references:
+            - ImageViewer._crop_rect, _saved_crop_rect
+            - update_main_display
         """
         crop_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
         if not crop_rect or not any(img is not None for img in self.processed):
@@ -236,7 +321,20 @@ class MainWindow(QMainWindow):
         """
         Handle key press events for channel switching and display mode.
 
+        Args:
+            self (MainWindow): The instance of the main window.
+            event (QKeyEvent): The key press event.
+
+        Returns:
+            None
+
         Delegates to handle_key_press; falls back to default if not handled.
+
+        Cross-references:
+            - handlers.keyboard.handle_key_press
+            - toggle_crop_mode
+            - cancel_crop
+            - apply_crop
         """
         if self.crop_mode:
             if event.key() == Qt.Key_Escape:

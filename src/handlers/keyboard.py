@@ -2,7 +2,12 @@
 Keyboard event handler utilities for the RGB Channel Processor application.
 
 This module provides functions to handle keyboard shortcuts for channel switching and display mode toggling in the main window.
+
+Cross-references:
+    - handlers.display.update_main_display: Refreshes the main display.
+    - main_window.MainWindow: Main application window.
 """
+
 from PyQt5.QtCore import Qt
 from handlers.display import update_main_display
 
@@ -11,11 +16,11 @@ def handle_key_press(main_window, event):
     Handles keyboard shortcuts for channel switching and display modes.
 
     Args:
-        main_window: Reference to the main application window
-        event: QKeyEvent from PyQt5's key press handler
+        main_window (QMainWindow): Reference to the main application window.
+        event (QKeyEvent): QKeyEvent from PyQt5's key press handler.
 
     Returns:
-        bool: True if the key was handled, False otherwise (allows event propagation)
+        bool: True if the key was handled, False otherwise (allows event propagation).
 
     Key Bindings:
         - 1: Show Red channel (index 0)
@@ -27,6 +32,10 @@ def handle_key_press(main_window, event):
         - Updates display state in main_window
         - Calls update_main_display() to refresh the UI
         - Accepts the event if handled to prevent further propagation
+
+    Cross-references:
+        - update_main_display
+        - main_window.MainWindow
     """
     if event.key() == Qt.Key_1:
         main_window.show_combined = False
