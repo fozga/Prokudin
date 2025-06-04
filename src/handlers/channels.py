@@ -1,7 +1,13 @@
-from handlers.image_loading import load_raw_image
+"""
+Handlers for loading, adjusting, and displaying individual color channels in the application.
+Provides functions to load raw images, apply adjustments, update previews, and manage display modes.
+"""
+
 from core.align import align_images
 from core.image_processing import apply_adjustments
 from handlers.display import update_main_display
+from handlers.image_loading import load_raw_image
+
 
 def load_channel(main_window, channel_idx):
     """
@@ -33,6 +39,7 @@ def load_channel(main_window, channel_idx):
             update_channel_preview(main_window, channel_idx)
         update_main_display(main_window)
 
+
 def adjust_channel(main_window, channel_idx):
     """
     Applies brightness and contrast adjustments to the specified channel and updates its preview.
@@ -49,11 +56,10 @@ def adjust_channel(main_window, channel_idx):
     if main_window.aligned[channel_idx] is not None:
         brightness = main_window.controllers[channel_idx].slider_brightness.value()
         contrast = main_window.controllers[channel_idx].slider_contrast.value()
-        main_window.processed[channel_idx] = apply_adjustments(
-            main_window.aligned[channel_idx], brightness, contrast
-        )
+        main_window.processed[channel_idx] = apply_adjustments(main_window.aligned[channel_idx], brightness, contrast)
         update_channel_preview(main_window, channel_idx)
         update_main_display(main_window)
+
 
 def update_channel_preview(main_window, channel_idx):
     """
@@ -70,6 +76,7 @@ def update_channel_preview(main_window, channel_idx):
     controller = main_window.controllers[channel_idx]
     controller.processed_image = main_window.processed[channel_idx]
     controller.update_preview()
+
 
 def show_single_channel(main_window, channel_idx):
     """

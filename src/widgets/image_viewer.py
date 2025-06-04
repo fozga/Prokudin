@@ -1,6 +1,12 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
-from PyQt5.QtCore import Qt, QRectF
+"""
+Custom QGraphicsView widget for displaying and interacting with images,
+including zoom, fit-to-view, and drag-to-pan functionality.
+"""
+
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPixmap
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView
+
 
 class ImageViewer(QGraphicsView):
     """
@@ -17,8 +23,9 @@ class ImageViewer(QGraphicsView):
         _zoom (float): Current zoom factor.
         _fit_to_view (bool): Whether the image is fit to the view.
         _scene (QGraphicsScene): The graphics scene containing the image.
-        _photo (QGraphicsPixmapItem): The pixmap item displaying the image.
+        photo (QGraphicsPixmapItem): The pixmap item displaying the image.
     """
+
     def __init__(self, parent=None):
         """
         Initializes the ImageViewer with default settings.
@@ -30,7 +37,7 @@ class ImageViewer(QGraphicsView):
         self._zoom = 1.0
         self._fit_to_view = False
         self._scene = QGraphicsScene(self)
-        self._photo = self._scene.addPixmap(QPixmap())
+        self.photo = self._scene.addPixmap(QPixmap())
         self.setScene(self._scene)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -67,11 +74,11 @@ class ImageViewer(QGraphicsView):
             - Fits the image to the view.
             - Resets the zoom factor.
         """
-        self._photo.setPixmap(pixmap)
-        self.fitInView(self._photo, Qt.KeepAspectRatio)
+        self.photo.setPixmap(pixmap)
+        self.fitInView(self.photo, Qt.KeepAspectRatio)
         self._zoom = 1.0
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event):  # pylint: disable=C0103
         """
         Handles mouse wheel events for zooming.
 
@@ -89,14 +96,14 @@ class ImageViewer(QGraphicsView):
                 self._zoom *= zoom_factor
                 self._fit_to_view = False  # Exit fit-to-view on manual zoom
             else:
-                self.scale(1/zoom_factor, 1/zoom_factor)
+                self.scale(1 / zoom_factor, 1 / zoom_factor)
                 self._zoom /= zoom_factor
                 self._fit_to_view = False
             event.accept()
         else:
             super().wheelEvent(event)
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event):  # pylint: disable=C0103
         """
         Handles widget resize events.
 
@@ -108,8 +115,8 @@ class ImageViewer(QGraphicsView):
         if self._fit_to_view:
             self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
         super().resizeEvent(event)
-            
-    def mousePressEvent(self, event):
+
+    def mousePressEvent(self, event):  # pylint: disable=C0103
         """
         Handles mouse press events.
 
@@ -123,7 +130,7 @@ class ImageViewer(QGraphicsView):
             self.setDragMode(QGraphicsView.ScrollHandDrag)
         super().mousePressEvent(event)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event):  # pylint: disable=C0103
         """
         Handles mouse release events.
 

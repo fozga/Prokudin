@@ -1,6 +1,12 @@
-import rawpy
+"""
+Image loading utilities for selecting and processing Sony ARW RAW files.
+Provides functions to open file dialogs, load RAW images, and convert them for further processing.
+"""
+
 import cv2
+import rawpy
 from PyQt5.QtWidgets import QFileDialog
+
 
 def load_raw_image(parent):
     """
@@ -28,21 +34,20 @@ def load_raw_image(parent):
             # Proceed with processing
     """
     options = QFileDialog.Options()
-    filename, _ = QFileDialog.getOpenFileName(
-        parent, "Select ARW File", "", 
-        "Sony RAW Files (*.arw)", options=options)
-    
+    filename, _ = QFileDialog.getOpenFileName(parent, "Select ARW File", "", "Sony RAW Files (*.arw)", options=options)
+
     if not filename:
         return None
-        
+
     try:
         with rawpy.imread(filename) as raw:
-            rgb = raw.postprocess(
-                use_camera_wb=True,
-                no_auto_bright=True,
-                output_bps=8
-            )
-        return cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
-    except Exception as e:
+            rgb = raw.postprocess(use_camera_wb=True, no_auto_bright=True, output_bps=8)
+        return cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
+    except (
+        rawpy.LibRawFileUnsupportedError,
+        rawpy.LibRawIOError,
+        FileNotFoundError,
+        PermissionError,
+    ) as e:  # pylint: disable=E1101
         print(f"Error loading ARW file: {e}")
         return None

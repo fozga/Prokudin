@@ -1,8 +1,14 @@
-from PyQt5.QtWidgets import QGroupBox, QVBoxLayout, QPushButton, QLabel
+"""
+Channel controller widget for RGB channel adjustment and preview in the UI.
+"""
+
+import cv2
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
-import cv2
+from PyQt5.QtWidgets import QGroupBox, QLabel, QPushButton, QVBoxLayout
+
 from .sliders import ResetSlider
+
 
 class ChannelController(QGroupBox):
     """
@@ -22,6 +28,7 @@ class ChannelController(QGroupBox):
         slider_contrast (ResetSlider): Slider for contrast adjustment.
         slider_intensity (ResetSlider): Slider for intensity adjustment.
     """
+
     def __init__(self, channel_name, color, parent=None):
         """
         Initializes the channel controller UI and its state.
@@ -54,19 +61,21 @@ class ChannelController(QGroupBox):
         self.preview_label.setAlignment(Qt.AlignCenter)
         self.preview_label.setStyleSheet("border: 1px solid gray;")
 
-        # Sliders for brightness, contrast, and intensity
-        self.slider_brightness = self.create_slider(-100, 100, 0)
-        self.slider_contrast = self.create_slider(-50, 50, 0)
-        self.slider_intensity = self.create_slider(0, 200, 100)
+        # Sliders for brightness, contrast, and intensity stored in a dictionary
+        self.sliders = {
+            "brightness": self.create_slider(-100, 100, 0),
+            "contrast": self.create_slider(-50, 50, 0),
+            "intensity": self.create_slider(0, 200, 100),
+        }
 
         layout.addWidget(self.btn_load)
         layout.addWidget(self.preview_label)
         layout.addWidget(QLabel("Brightness:"))
-        layout.addWidget(self.slider_brightness)
+        layout.addWidget(self.sliders["brightness"])
         layout.addWidget(QLabel("Contrast:"))
-        layout.addWidget(self.slider_contrast)
+        layout.addWidget(self.sliders["contrast"])
         layout.addWidget(QLabel("Intensity:"))
-        layout.addWidget(self.slider_intensity)
+        layout.addWidget(self.sliders["intensity"])
 
         self.setFixedWidth(200)
         self.setLayout(layout)
@@ -99,7 +108,8 @@ class ChannelController(QGroupBox):
         The image is resized to fit the preview area (160x120) and converted to a QPixmap.
         """
         if self.processed_image is not None:
-            preview = cv2.resize(self.processed_image, (160, 120))
-            q_img = QImage(preview.data, preview.shape[1], preview.shape[0],
-                           preview.strides[0], QImage.Format_Grayscale8)
+            preview = cv2.resize(self.processed_image, (160, 120))  # pylint: disable=E1101
+            q_img = QImage(
+                preview.data, preview.shape[1], preview.shape[0], preview.strides[0], QImage.Format_Grayscale8
+            )
             self.preview_label.setPixmap(QPixmap.fromImage(q_img))

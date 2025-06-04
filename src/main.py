@@ -14,8 +14,11 @@ Modules:
 """
 
 import sys
+
 from PyQt5.QtWidgets import QApplication
+
 from main_window import MainWindow
+
 
 def main():
     """
@@ -30,10 +33,6 @@ def main():
     window.show()
     sys.exit(app.exec_())
 
-if __name__ == '__main__':
-    main()
-    
 
-# TODO  Implement async processing
-# TODO  Add status bar and feedback
-# TODO  Add type/dimension checks in processing methods
+if __name__ == "__main__":
+    main()

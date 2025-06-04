@@ -1,10 +1,17 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout
+"""
+Main application window and UI layout for the RGB Channel Processor.
+Handles state management, user interactions, and connects UI components to processing logic.
+"""
+
 from PyQt5.QtCore import Qt
-from widgets.image_viewer import ImageViewer
-from widgets.channel_controller import ChannelController
-from handlers.keyboard import handle_key_press
-from handlers.channels import load_channel, adjust_channel, update_channel_preview, show_single_channel
+from PyQt5.QtWidgets import QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
+
+from handlers.channels import adjust_channel, load_channel, show_single_channel
 from handlers.display import update_main_display
+from handlers.keyboard import handle_key_press
+from widgets.channel_controller import ChannelController
+from widgets.image_viewer import ImageViewer
+
 
 class MainWindow(QMainWindow):
     """
@@ -13,7 +20,7 @@ class MainWindow(QMainWindow):
     This window manages the overall GUI layout, holds the state of loaded and processed images,
     and connects user interactions (buttons, sliders, keyboard) to the processing logic.
     """
-    
+
     def __init__(self):
         """
         Initialize the main window, set up the title, geometry, internal state,
@@ -29,7 +36,7 @@ class MainWindow(QMainWindow):
         self.processed = [None, None, None]
         # Display state
         self.show_combined = True  # If True, show combined RGB; else show single channel
-        self.current_channel = 0   # Index of the currently selected channel
+        self.current_channel = 0  # Index of the currently selected channel
 
         self.init_ui()
 
@@ -53,7 +60,7 @@ class MainWindow(QMainWindow):
         self.controllers = [
             ChannelController("red", Qt.red),
             ChannelController("green", Qt.green),
-            ChannelController("blue", Qt.blue)
+            ChannelController("blue", Qt.blue),
         ]
 
         for idx, controller in enumerate(self.controllers):
@@ -62,7 +69,7 @@ class MainWindow(QMainWindow):
             controller.slider_brightness.valueChanged.connect(lambda v, i=idx: adjust_channel(self, i))
             controller.slider_contrast.valueChanged.connect(lambda v, i=idx: adjust_channel(self, i))
             controller.slider_intensity.valueChanged.connect(lambda v, i=idx: update_main_display(self))
-            controller.preview_label.mousePressEvent = (lambda event, i=idx: show_single_channel(self, i))
+            controller.preview_label.mousePressEvent = lambda event, i=idx: show_single_channel(self, i)
 
             right_panel.addWidget(controller)
         right_panel.addStretch()
@@ -70,7 +77,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(main_widget)
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event):  # pylint: disable=invalid-name
         """
         Handle key press events for channel switching and display mode.
 

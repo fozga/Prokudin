@@ -4,3 +4,6 @@ load-plugins = pylint.extensions.bad_builtin
 
 [FORMAT]
 max-line-length = 120
+
+[MESSAGES CONTROL]
+disable = no-name-in-module

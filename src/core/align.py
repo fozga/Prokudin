@@ -1,5 +1,15 @@
+"""
+Image alignment utilities for RGB channel processing.
+Aligns green and blue channels to the red channel using ORB feature matching and affine transformation.
+"""
+
 import cv2
 import numpy as np
+
+
+class AlignmentError(Exception):
+    """Custom exception for alignment errors."""
+
 
 def align_images(original_images):
     """
@@ -13,17 +23,18 @@ def align_images(original_images):
         list: Aligned images in order [R_aligned, G_aligned, B_aligned]
 
     Raises:
-        AlignmentError: If less than MIN_MATCHES features are found between channels
+        AlignmentError: If less than min_matches features are found between channels
 
     Example:
         aligned = align_images([red_ch, green_ch, blue_ch])
     """
-    
+
     # Start with copies of the originals
     aligned = [img.copy() for img in original_images]
 
     # ORB detector with increased features for better matching
-    orb = cv2.ORB_create(1000) # 1000 features balances performance/accuracy
+    # 1000 features balances performance/accuracy
+    orb = cv2.ORB_create(1000)  # pylint: disable=E1101
     keypoints = []
     descriptors = []
 
@@ -35,28 +46,30 @@ def align_images(original_images):
 
     # Align G (1) and B (2) to R (0)
     for i in range(1, 3):
-        if (descriptors[0] is not None and descriptors[i] is not None and
-            descriptors[0].size > 0 and descriptors[i].size > 0):
+        if (
+            descriptors[0] is not None
+            and descriptors[i] is not None
+            and descriptors[0].size > 0
+            and descriptors[i].size > 0
+        ):
 
             # Brute-force matching with Hamming distance
-            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)  # pylint: disable=E1101
             matches = bf.match(descriptors[0], descriptors[i])
 
-            MIN_MATCHES = 50  # Minimum matches for reliable alignment
-            if len(matches) < MIN_MATCHES:
-                raise AlignmentError(f"Insufficient matches ({len(matches)}/{MIN_MATCHES})")                
+            min_matches = 50  # Minimum matches for reliable alignment
+            if len(matches) < min_matches:
+                raise AlignmentError(f"Insufficient matches ({len(matches)}/{min_matches})")
             # Convert match points to numpy arrays
-            src_pts = np.float32([keypoints[0][m.queryIdx].pt for m in matches]).reshape(-1,1,2)
-            dst_pts = np.float32([keypoints[i][m.trainIdx].pt for m in matches]).reshape(-1,1,2)
+            src_pts = np.array([keypoints[0][m.queryIdx].pt for m in matches], dtype=np.float32).reshape((-1, 1, 2))
+            dst_pts = np.array([keypoints[i][m.trainIdx].pt for m in matches], dtype=np.float32).reshape((-1, 1, 2))
 
             # Estimate partial affine transform (rotation, translation, scaling)
-            M, _ = cv2.estimateAffinePartial2D(dst_pts, src_pts)
-            if M is None:
+            matrix, _ = cv2.estimateAffinePartial2D(dst_pts, src_pts)  # pylint: disable=E1101
+            if matrix is None:
                 raise AlignmentError(f"Failed to estimate transformation for channel {i}")
-            else:
-                # Apply transformation using reference channel dimensions
-                aligned[i] = cv2.warpAffine(
-                    original_images[i], M,
-                    (original_images[0].shape[1], original_images[0].shape[0])
-                )
+            # Apply transformation using reference channel dimensions
+            aligned[i] = cv2.warpAffine(  # pylint: disable=E1101
+                original_images[i], matrix, (original_images[0].shape[1], original_images[0].shape[0])
+            )
     return aligned
