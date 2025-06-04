@@ -3,12 +3,15 @@ Image loading utilities for selecting and processing Sony ARW RAW files.
 Provides functions to open file dialogs, load RAW images, and convert them for further processing.
 """
 
-import cv2
-import rawpy
-from PyQt5.QtWidgets import QFileDialog
+from typing import Union
+
+import cv2  # type: ignore
+import numpy as np
+import rawpy  # type: ignore
+from PyQt5.QtWidgets import QFileDialog, QWidget
 
 
-def load_raw_image(parent):
+def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
     """
     Opens a file dialog for the user to select a Sony ARW RAW image,
     loads the image using rawpy, processes it to an 8-bit RGB image,
@@ -42,10 +45,12 @@ def load_raw_image(parent):
     try:
         with rawpy.imread(filename) as raw:
             rgb = raw.postprocess(use_camera_wb=True, no_auto_bright=True, output_bps=8)
-        return cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
+        # Add explicit type annotation to the return value
+        result: np.ndarray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
+        return result
     except (
-        rawpy.LibRawFileUnsupportedError,
-        rawpy.LibRawIOError,
+        rawpy.LibRawFileUnsupportedError,  # pylint: disable=E1101
+        rawpy.LibRawIOError,  # pylint: disable=E1101
         FileNotFoundError,
         PermissionError,
     ) as e:  # pylint: disable=E1101

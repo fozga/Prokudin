@@ -17,10 +17,10 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from main_window import MainWindow
+from .main_window import MainWindow
 
 
-def main():
+def main() -> None:
     """
     Initialize and run the RGB Channel Processor application.
 

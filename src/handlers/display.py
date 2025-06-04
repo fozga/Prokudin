@@ -2,14 +2,21 @@
 Display handlers for updating the main image view and channel previews in the application.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, cast
+
 import numpy as np
 from PyQt5.QtCore import QRectF
 from PyQt5.QtGui import QPixmap
 
-from core.image_processing import combine_channels, convert_to_qimage
+if TYPE_CHECKING:
+    from ..main_window import MainWindow
+
+from ..core.image_processing import combine_channels, convert_to_qimage
 
 
-def update_main_display(main_window):
+def update_main_display(main_window: "MainWindow") -> None:
     """
     Updates the main image display area based on the current application state.
 
@@ -25,12 +32,13 @@ def update_main_display(main_window):
     else:
         show_single_channel_image(main_window)
 
-    if main_window.viewer.photo.pixmap():
+    # Add null check before accessing pixmap()
+    if main_window.viewer.photo is not None and main_window.viewer.photo.pixmap():
         pixmap = main_window.viewer.photo.pixmap()
         main_window.viewer.setSceneRect(QRectF(0, 0, pixmap.width(), pixmap.height()))
 
 
-def show_combined_image(main_window):
+def show_combined_image(main_window: "MainWindow") -> None:
     """
     Displays the combined RGB image in the main viewer.
 
@@ -42,13 +50,15 @@ def show_combined_image(main_window):
     """
     if any(img is None for img in main_window.processed):
         return
+
+    channels = cast(List[np.ndarray | None], main_window.processed)
     intensities = [ctrl.slider_intensity.value() for ctrl in main_window.controllers]
-    combined = combine_channels(main_window.processed, intensities)
+    combined = combine_channels(channels, intensities)
     q_img = convert_to_qimage(combined)
     main_window.viewer.set_image(QPixmap.fromImage(q_img))
 
 
-def show_single_channel_image(main_window):
+def show_single_channel_image(main_window: "MainWindow") -> None:
     """
     Displays a single selected channel as a grayscale image in the main viewer.
 

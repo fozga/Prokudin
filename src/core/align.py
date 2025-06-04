@@ -3,7 +3,7 @@ Image alignment utilities for RGB channel processing.
 Aligns green and blue channels to the red channel using ORB feature matching and affine transformation.
 """
 
-import cv2
+import cv2  # type: ignore
 import numpy as np
 
 
@@ -11,7 +11,7 @@ class AlignmentError(Exception):
     """Custom exception for alignment errors."""
 
 
-def align_images(original_images):
+def align_images(original_images: list) -> list:
     """
     Aligns green and blue channels to the red channel using ORB feature matching
     and affine transformation.

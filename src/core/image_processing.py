@@ -3,11 +3,15 @@ Image processing utilities for channel adjustment, combination, and conversion f
 Includes brightness/contrast adjustment, channel combination, and conversion to QImage.
 """
 
+from typing import List, Union
+
 import numpy as np
 from PyQt5.QtGui import QImage
 
 
-def apply_adjustments(image, brightness=0, contrast=0):
+def apply_adjustments(
+    image: Union[np.ndarray, None], brightness: int = 0, contrast: int = 0
+) -> Union[np.ndarray, None]:
     """
     Applies brightness and contrast adjustments to a grayscale image.
 
@@ -30,7 +34,7 @@ def apply_adjustments(image, brightness=0, contrast=0):
     return np.clip(img, 0, 255).astype(np.uint8)
 
 
-def combine_channels(channels, intensities):
+def combine_channels(channels: List[Union[np.ndarray, None]], intensities: List[float]) -> Union[np.ndarray, None]:
     """
     Combines three grayscale channels into RGB image with intensity adjustments.
 
@@ -48,14 +52,20 @@ def combine_channels(channels, intensities):
     if any(channel is None for channel in channels):
         return None
 
-    combined = np.zeros((*channels[0].shape, 3), dtype=np.float32)
+    # Assert to help type checker understand all channels are now definitely not None
+    assert all(channel is not None for channel in channels)
+
+    # Create a new variable with a definite non-None type
+    valid_channels: List[np.ndarray] = [c for c in channels if c is not None]
+
+    combined = np.zeros((*valid_channels[0].shape, 3), dtype=np.float32)
     for i in range(3):
-        combined[:, :, i] = channels[i].astype(np.float32) * (intensities[i] / 100)
+        combined[:, :, i] = valid_channels[i].astype(np.float32) * (intensities[i] / 100)
 
     return np.clip(combined, 0, 255).astype(np.uint8)
 
 
-def convert_to_qimage(image):
+def convert_to_qimage(image: Union[np.ndarray, None]) -> QImage:
     """
     Converts numpy image to QImage for PyQt5 display.
 

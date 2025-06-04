@@ -2,10 +2,13 @@
 Channel controller widget for RGB channel adjustment and preview in the UI.
 """
 
-import cv2
+from typing import Union
+
+import cv2  # type: ignore
+import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QGroupBox, QLabel, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QGroupBox, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from .sliders import ResetSlider
 
@@ -29,7 +32,7 @@ class ChannelController(QGroupBox):
         slider_intensity (ResetSlider): Slider for intensity adjustment.
     """
 
-    def __init__(self, channel_name, color, parent=None):
+    def __init__(self, channel_name: str, color: Qt.GlobalColor, parent: Union[QWidget, None] = None) -> None:
         """
         Initializes the channel controller UI and its state.
 
@@ -41,10 +44,10 @@ class ChannelController(QGroupBox):
         super().__init__(parent)
         self.channel_name = channel_name
         self.color = color
-        self.processed_image = None
+        self.processed_image: Union[np.ndarray, None] = None
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         """
         Sets up the layout, widgets, and sliders for the channel controller.
         """
@@ -58,7 +61,7 @@ class ChannelController(QGroupBox):
         # Preview area for the processed image
         self.preview_label = QLabel()
         self.preview_label.setFixedSize(160, 120)
-        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setStyleSheet("border: 1px solid gray;")
 
         # Sliders for brightness, contrast, and intensity stored in a dictionary
@@ -80,7 +83,7 @@ class ChannelController(QGroupBox):
         self.setFixedWidth(200)
         self.setLayout(layout)
 
-    def create_slider(self, min_val, max_val, default):
+    def create_slider(self, min_val: int, max_val: int, default: int) -> ResetSlider:
         """
         Creates a horizontal slider with the specified range and default value.
         The slider resets to the default value on double-click.
@@ -93,7 +96,7 @@ class ChannelController(QGroupBox):
         Returns:
             ResetSlider: Configured slider widget.
         """
-        slider = ResetSlider(Qt.Horizontal)
+        slider = ResetSlider(Qt.Orientation.Horizontal)
         slider.setRange(min_val, max_val)
         slider.setValue(default)
         slider.setFixedWidth(180)
@@ -101,7 +104,7 @@ class ChannelController(QGroupBox):
         slider.doubleClicked.connect(lambda: slider.setValue(default))
         return slider
 
-    def update_preview(self):
+    def update_preview(self) -> None:
         """
         Updates the preview label with the current processed image.
 
