@@ -1,9 +1,26 @@
+"""
+Image viewer widget for the RGB Channel Processor application.
+
+This module defines the ImageViewer class, a custom QGraphicsView for displaying images with zoom, pan, and cropping capabilities.
+
+Cross-references:
+    - main_window.MainWindow: Uses ImageViewer for main image display.
+    - handlers.display: Calls set_image and crop-related methods.
+"""
+
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem
 from PyQt5.QtCore import Qt, QRectF, QPointF, QRect
 from PyQt5.QtGui import QPainter, QPixmap, QPen, QColor
 from PyQt5.QtWidgets import QApplication
 
 class ImageViewer(QGraphicsView):
+    """
+    Custom QGraphicsView for displaying and interacting with images.
+
+    Cross-references:
+        - main_window.MainWindow: Instantiates and manages crop mode.
+        - handlers.display: Updates image display.
+    """
     """
     A custom graphics view for displaying and interacting with images.
 
@@ -25,7 +42,11 @@ class ImageViewer(QGraphicsView):
         Initializes the ImageViewer with default settings.
 
         Args:
+            self (ImageViewer): The instance of the image viewer.
             parent (QWidget, optional): Parent widget.
+
+        Returns:
+            None
         """
         super().__init__(parent)
         self.zoom = 1.0
@@ -59,8 +80,11 @@ class ImageViewer(QGraphicsView):
         """
         Toggles between fit-to-view and manual zoom modes.
 
-        - If toggled on, fits the image to the view while preserving aspect ratio.
-        - If toggled off, resets any zoom or transformation.
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+
+        Returns:
+            None
         """
         self.fit_to_view = not self.fit_to_view
         if self.fit_to_view:
@@ -75,7 +99,11 @@ class ImageViewer(QGraphicsView):
         Sets the displayed image.
 
         Args:
+            self (ImageViewer): The instance of the image viewer.
             pixmap (QPixmap): The image to display.
+
+        Returns:
+            None
 
         Behavior:
             - Sets the pixmap in the scene.
@@ -90,12 +118,16 @@ class ImageViewer(QGraphicsView):
         """
         Handles mouse wheel events for zooming.
 
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            event (QWheelEvent): The wheel event.
+
+        Returns:
+            None
+
         - Holding Ctrl and using the wheel zooms in/out.
         - Exits fit-to-view mode on manual zoom.
         - Otherwise, passes the event to the base class.
-
-        Args:
-            event (QWheelEvent): The wheel event.
         """
         if event.modifiers() & Qt.ControlModifier:
             zoom_factor = 1.25
@@ -115,10 +147,14 @@ class ImageViewer(QGraphicsView):
         """
         Handles widget resize events.
 
-        - If in fit-to-view mode, refits the image to the new view size.
-
         Args:
+            self (ImageViewer): The instance of the image viewer.
             event (QResizeEvent): The resize event.
+
+        Returns:
+            None
+
+        - If in fit-to-view mode, refits the image to the new view size.
         """
         if self.fit_to_view:
             self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
@@ -128,17 +164,23 @@ class ImageViewer(QGraphicsView):
         """
         Handles mouse press events.
 
-        - Enables scroll-hand drag mode on left mouse button press.
-
         Args:
+            self (ImageViewer): The instance of the image viewer.
             event (QMouseEvent): The mouse press event.
+
+        Returns:
+            None
+
+        - Enables scroll-hand drag mode on left mouse button press.
         """
+
         if self._crop_mode and event.button() == Qt.LeftButton:
             self._drag_handle = self.get_handle_at(event.pos())
             if self._drag_handle:
                 self._dragging = True
                 self._drag_start = self.mapToScene(event.pos())
                 self._original_crop_rect = QRect(self._crop_rect)  # Store original rect
+
                 self._anchor_point = self.get_anchor_point(self._drag_handle, self._crop_rect)
                 # Store fixed edges for corner handles
                 if self._drag_handle in ['top_left', 'top_right', 'bottom_left', 'bottom_right']:
@@ -163,16 +205,21 @@ class ImageViewer(QGraphicsView):
         """
         Handles mouse release events.
 
-        - Disables drag mode when the mouse is released.
-
         Args:
+            self (ImageViewer): The instance of the image viewer.
             event (QMouseEvent): The mouse release event.
+
+        Returns:
+            None
+
+        - Disables drag mode when the mouse is released.
         """
         if self._crop_mode and event.button() == Qt.LeftButton:
             if self._dragging:
                 self._dragging = False
                 self._drag_handle = None
                 # Update cursor based on current position
+
                 handle = self.get_handle_at(event.pos())
                 self.update_cursor_for_handle(handle)
                 event.accept()
@@ -181,6 +228,19 @@ class ImageViewer(QGraphicsView):
         super().mouseReleaseEvent(event)
 
     def mouseMoveEvent(self, event):
+        """
+        Handles mouse move events.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            event (QMouseEvent): The mouse move event.
+
+        Returns:
+            None
+
+        - Updates the cursor based on the handle under the mouse.
+        - Updates the crop rectangle based on mouse movement.
+        """
         if self._crop_mode:
             if self._dragging and self._crop_rect:
                 current_pos = self.mapToScene(event.pos())
@@ -189,6 +249,7 @@ class ImageViewer(QGraphicsView):
                     self._drag_start = current_pos
                     self._crop_rect.translate(int(delta.x()), int(delta.y()))
                 else:
+
                     self.resize_crop_rect_from_anchor(self._drag_handle, self._anchor_point, current_pos, self._original_crop_rect)
                 self.constrain_crop_rect()
                 self.viewport().update()
@@ -196,6 +257,7 @@ class ImageViewer(QGraphicsView):
                 return
             else:
                 # Update cursor based on handle under mouse
+
                 handle = self.get_handle_at(event.pos())
                 self.update_cursor_for_handle(handle)
                 event.accept()
@@ -203,17 +265,22 @@ class ImageViewer(QGraphicsView):
         super().mouseMoveEvent(event)
 
     def enterEvent(self, event):
+
+        """Handle mouse enter events to ensure cursor is updated."""
         if self._crop_mode:
             handle = self.get_handle_at(event.pos())
             self.update_cursor_for_handle(handle)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
+        """Handle mouse leave events to reset cursor."""
         if self._crop_mode:
             self.setCursor(Qt.ArrowCursor)
         super().leaveEvent(event)
 
+
     def update_cursor_for_handle(self, handle):
+        """Update cursor based on the handle under the mouse."""
         if self._dragging and self._drag_handle == 'move':
             self.setCursor(Qt.ClosedHandCursor)
         elif handle == 'move':
@@ -232,6 +299,21 @@ class ImageViewer(QGraphicsView):
         QApplication.processEvents()
 
     def set_crop_mode(self, enabled):
+
+        """
+        Enables or disables crop mode in the image viewer.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            enabled (bool): True to enable crop mode, False to disable it.
+
+        Returns:
+            None
+
+        Behavior:
+            - Initializes the crop rectangle if enabling crop mode.
+            - Discards the temporary crop rectangle when disabling crop mode.
+        """
         self._crop_mode = enabled
         if enabled:
             if self.photo.pixmap():
@@ -240,6 +322,7 @@ class ImageViewer(QGraphicsView):
                     self._crop_rect = QRect(self._saved_crop_rect)
                 else:
                     # Initialize to 80% of image size, centered
+
                     img_width = self.photo.pixmap().width()
                     img_height = self.photo.pixmap().height()
                     rect_width = int(img_width * 0.8)
@@ -249,6 +332,7 @@ class ImageViewer(QGraphicsView):
                     self._crop_rect = QRect(x, y, rect_width, rect_height)
                 
                 if self._crop_ratio:
+
                     self.adjust_crop_rect_to_ratio()
             self.setCursor(Qt.ArrowCursor)
         else:
@@ -258,19 +342,51 @@ class ImageViewer(QGraphicsView):
         self.viewport().update()
 
     def confirm_crop(self):
+        """
+        Confirms the current crop rectangle.
+
+        - Saves the crop rectangle for future use.
+        - Exits crop mode.
+        """
         if self._crop_rect:
             self._saved_crop_rect = QRect(self._crop_rect)
         self.set_crop_mode(False)
 
     def cancel_crop(self):
+        """
+        Cancels the current crop operation.
+
+        - Discards the temporary crop rectangle.
+        - Exits crop mode.
+        """
         self._crop_rect = None
         self.set_crop_mode(False)
 
     def set_crop_rect(self, rect):
+        """
+        Sets the crop rectangle for the image viewer and triggers a viewport update.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            rect (QRect): The rectangle defining the crop area.
+
+        Returns:
+            None
+        """
         self._crop_rect = rect
         self.viewport().update()
 
     def set_crop_ratio(self, ratio):
+        """
+        Sets the aspect ratio for the crop rectangle.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            ratio (tuple or None): Aspect ratio as (width, height), or None for free aspect.
+
+        Returns:
+            None
+        """
         if not self._crop_rect:
             self._crop_ratio = ratio
             return
@@ -279,9 +395,19 @@ class ImageViewer(QGraphicsView):
         self._crop_ratio = ratio
         
         # Adjust the current rectangle to the new ratio
+
         self.adjust_crop_rect_to_ratio()
 
     def adjust_crop_rect_to_ratio(self):
+        """
+        Adjusts the current crop rectangle to maintain the set aspect ratio.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+
+        Returns:
+            None
+        """
         if not self._crop_ratio or not self._crop_rect:
             return
 
@@ -311,6 +437,7 @@ class ImageViewer(QGraphicsView):
         )
         
         # Ensure the new rectangle stays within image bounds
+
         bounds = self.photo.boundingRect()
         if new_rect.right() > bounds.right():
             new_rect.setRight(int(bounds.right()))
@@ -323,6 +450,17 @@ class ImageViewer(QGraphicsView):
         self.viewport().update()
 
     def get_handle_at(self, pos):
+        """
+        Determines which crop handle (if any) is under the given mouse position.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            pos (QPoint): Mouse position in view coordinates.
+
+        Returns:
+            str or None: Handle name ('top_left', 'move', etc.) or None if not on a handle.
+        """
+
         if not self._crop_rect:
             return None
 
@@ -363,7 +501,18 @@ class ImageViewer(QGraphicsView):
         return None
 
     def get_anchor_point(self, handle, rect):
-        # Returns the fixed anchor point (QPoint) for a given handle and rect
+        """
+        Returns the fixed anchor point (QPoint) for a given handle and rectangle.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            handle (str): The handle being dragged.
+            rect (QRect): The crop rectangle.
+
+        Returns:
+            QPoint: The anchor point.
+        """
+
         if handle == 'top_left':
             return rect.bottomRight()
         elif handle == 'top_right':
@@ -383,7 +532,21 @@ class ImageViewer(QGraphicsView):
         else:
             return rect.center()
 
+
     def resize_crop_rect_from_anchor(self, handle, anchor, mouse_scene_pos, original_rect):
+        """
+        Resizes the crop rectangle based on the dragged handle and anchor.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+            handle (str): The handle being dragged.
+            anchor (QPointF): The fixed anchor point.
+            mouse_scene_pos (QPointF): Current mouse position in scene coordinates.
+            original_rect (QRect): The original crop rectangle before dragging.
+
+        Returns:
+            None
+        """
         bounds = self.photo.boundingRect()
         anchor = QPointF(anchor)
         mouse = QPointF(mouse_scene_pos)
@@ -471,6 +634,7 @@ class ImageViewer(QGraphicsView):
                 new_rect = QRect(int(fixed_left), int(fixed_top), int(moving_x - fixed_left), int(moving_y - fixed_top))
             # Clamp new_rect to image bounds
             new_rect = new_rect.intersected(QRect(int(bounds.left()), int(bounds.top()), int(bounds.width()), int(bounds.height())))
+
             if new_rect.width() < self._min_crop_size or new_rect.height() < self._min_crop_size:
                 return  # Maintain minimum size
             self._crop_rect = new_rect
@@ -587,6 +751,7 @@ class ImageViewer(QGraphicsView):
                             height = int(round(width / target_ratio))
                             new_bottom = fixed_top + height
                         new_rect = QRect(int(new_left), int(fixed_top), int(width), int(height))
+
                 if new_rect.width() < self._min_crop_size or new_rect.height() < self._min_crop_size:
                     return  # Maintain minimum size
                 self._crop_rect = new_rect
@@ -616,11 +781,21 @@ class ImageViewer(QGraphicsView):
                 width = int(right - left)
                 height = int(bottom - top)
                 new_rect = QRect(int(left), int(top), int(width), int(height))
+
                 if new_rect.width() < self._min_crop_size or new_rect.height() < self._min_crop_size:
                     return  # Maintain minimum size
                 self._crop_rect = new_rect
 
     def constrain_crop_rect(self):
+        """
+        Constrains the crop rectangle to stay within image bounds.
+
+        Args:
+            self (ImageViewer): The instance of the image viewer.
+
+        Returns:
+            None
+        """
         if not self._crop_rect or not self.photo:
             return
 
@@ -648,9 +823,20 @@ class ImageViewer(QGraphicsView):
 
         # If we have a fixed ratio, maintain it
         if self._crop_ratio:
+
             self.adjust_crop_rect_to_ratio()
 
     def drawForeground(self, painter, rect):
+        """
+        Draws the crop rectangle and handles when in crop mode.
+
+        Args:
+            painter (QPainter): The painter object.
+            rect (QRectF): The area to be painted.
+
+        Returns:
+            None
+        """
         if not self._crop_mode or not self._crop_rect:
             return
 

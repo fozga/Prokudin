@@ -1,7 +1,20 @@
+"""
+Image alignment utilities for the RGB Channel Processor.
+
+Cross-references:
+    - handlers.channels: Uses align_images for channel alignment.
+"""
+
 import cv2
 import numpy as np
 
 class AlignmentError(Exception):
+    """
+    Exception raised when image alignment fails due to insufficient feature matches or transformation errors.
+
+    Cross-references:
+        - align_images
+    """
     pass
 
 def align_images(original_images):
@@ -10,16 +23,16 @@ def align_images(original_images):
     and affine transformation.
 
     Args:
-        original_images (list): List of three numpy arrays [R, G, B] in grayscale
+        original_images (list of numpy.ndarray): List of three grayscale images (R, G, B), each as a 2D numpy array.
 
     Returns:
-        list: Aligned images in order [R_aligned, G_aligned, B_aligned]
+        list of numpy.ndarray: List of aligned images [R, G, B].
 
     Raises:
-        AlignmentError: If less than MIN_MATCHES features are found between channels
+        AlignmentError: If alignment fails due to insufficient matches or transformation errors.
 
-    Example:
-        aligned = align_images([red_ch, green_ch, blue_ch])
+    Cross-references:
+        - handlers.channels.load_channel
     """
     
     # Start with copies of the originals

@@ -23,6 +23,12 @@ def main():
 
     This function creates a QApplication instance, instantiates and displays the main window,
     and starts the Qt event loop. The application will exit when the main window is closed.
+
+    Args:
+        None
+
+    Returns:
+        None
     """
     app = QApplication(sys.argv)
     window = MainWindow()

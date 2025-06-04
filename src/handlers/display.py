@@ -1,3 +1,8 @@
+"""
+Display handler utilities for updating the main image viewer in the application.
+
+This module provides functions to update the main display area, showing either the combined RGB image or a single channel, with support for cropping and intensity adjustments.
+"""
 import numpy as np
 from PyQt5.QtCore import QRectF
 from PyQt5.QtGui import QPixmap
@@ -5,14 +10,13 @@ from core.image_processing import combine_channels, convert_to_qimage
 
 def update_main_display(main_window):
     """
-    Updates the main image display area based on the current application state.
-
-    Depending on whether the user wants to view the combined RGB image or a single channel,
-    this function delegates to the appropriate display function. It also ensures that the
-    scene rectangle in the viewer matches the displayed image size.
+    Updates the main display of the application based on the current state of the main window.
 
     Args:
-        main_window: Reference to the main application window containing image data and UI state.
+        main_window (QMainWindow): The main window object containing the display settings and viewer.
+
+    Returns:
+        None
     """
     if main_window.show_combined:
         show_combined_image(main_window)
@@ -27,11 +31,11 @@ def show_combined_image(main_window):
     """
     Displays the combined RGB image in the main viewer.
 
-    Combines the three processed channels using their respective intensity slider values,
-    converts the result to a QImage, and sets it in the viewer.
-
     Args:
-        main_window: Reference to the main application window.
+        main_window (QMainWindow): Reference to the main application window.
+
+    Returns:
+        None
     """
     if any(img is None for img in main_window.processed):
         return
@@ -62,11 +66,11 @@ def show_single_channel_image(main_window):
     """
     Displays a single selected channel as a grayscale image in the main viewer.
 
-    The selected channel is duplicated across RGB for display purposes, converted to QImage,
-    and shown in the viewer.
-
     Args:
-        main_window: Reference to the main application window.
+        main_window (QMainWindow): Reference to the main application window.
+
+    Returns:
+        None
     """
     img = main_window.processed[main_window.current_channel]
     if img is not None:
