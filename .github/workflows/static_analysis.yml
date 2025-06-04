@@ -19,6 +19,10 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+      - name: Install PyQt5
+        run: pip install PyQt5 PyQt5-stubs
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Install pylint
         run: pip install pylint
       - name: Run static code analysis
