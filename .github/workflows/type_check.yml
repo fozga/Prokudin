@@ -4,8 +4,6 @@ on:
   push:
     branches-ignore:
       - main
-  pull_request:
-    branches: [main]
 
 jobs:
   type-check:
@@ -15,6 +13,8 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Install mypy and dependencies
         run: pip install mypy
       - name: Run type checking
