@@ -34,7 +34,7 @@ def align_images(original_images: list) -> list:
 
     # ORB detector with increased features for better matching
     # 1000 features balances performance/accuracy
-    orb = cv2.ORB_create(1000)  # pylint: disable=E1101
+    orb = cv2.ORB_create(1000)  # type: ignore[attr-defined]  # pylint: disable=E1101
     keypoints = []
     descriptors = []
 
