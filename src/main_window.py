@@ -3,11 +3,11 @@ Main application window and UI layout for the RGB Channel Processor.
 Handles state management, user interactions, and connects UI components to processing logic.
 """
 
-from typing import Callable, Union
+from typing import Callable
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeyEvent, QMouseEvent
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox
 
 from .handlers.channels import adjust_channel, load_channel, show_single_channel
 from .handlers.display import update_main_display
@@ -133,9 +133,9 @@ class MainWindow(QMainWindow):
         for idx, controller in enumerate(self.controllers):
             # Connect load button and sliders to handlers
             controller.btn_load.clicked.connect(lambda _, i=idx: load_channel(self, i))
-            controller.slider_brightness.valueChanged.connect(lambda v, i=idx: adjust_channel(self, i))
-            controller.slider_contrast.valueChanged.connect(lambda v, i=idx: adjust_channel(self, i))
-            controller.slider_intensity.valueChanged.connect(lambda v, i=idx: update_main_display(self))
+            controller.sliders["brightness"].valueChanged.connect(lambda _, i=idx: adjust_channel(self, i))
+            controller.sliders["contrast"].valueChanged.connect(lambda _, i=idx: adjust_channel(self, i))
+            controller.sliders["intensity"].valueChanged.connect(lambda _: update_main_display(self))
 
             # Fix the mousePressEvent assignment with properly typed functions
             # Pass controller as an argument to avoid cell-var-from-loop issue

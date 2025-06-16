@@ -5,10 +5,10 @@ including zoom, fit-to-view, and drag-to-pan functionality.
 
 from typing import Union
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QMouseEvent, QPainter, QPixmap, QResizeEvent, QWheelEvent
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QWidget
 
+from PyQt5.QtCore import Qt, QRect, QRectF, QPointF
+from PyQt5.QtGui import QMouseEvent, QPainter, QPixmap, QResizeEvent, QWheelEvent, QColor,  QPen
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QWidget, QApplication
 
 class ImageViewer(QGraphicsView):
     """
@@ -50,7 +50,7 @@ class ImageViewer(QGraphicsView):
         self.zoom = 1.0
         self.fit_to_view = False
         self.scene = QGraphicsScene(self)
-        self.photo: Union[QGraphicsPixmapItem, None] = self._scene.addPixmap(QPixmap())
+        self.photo: Union[QGraphicsPixmapItem, None] = self.scene.addPixmap(QPixmap())
         self.setScene(self.scene)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -74,7 +74,7 @@ class ImageViewer(QGraphicsView):
         self._fixed_edges = None
         self._min_crop_size = 50
 
-    def toggle_view(self): -> None:
+    def toggle_view(self) -> None:
         """
         Toggles between fit-to-view and manual zoom modes.
 

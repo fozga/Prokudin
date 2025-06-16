@@ -24,12 +24,15 @@ class ChannelController(QGroupBox):
     Attributes:
         channel_name (str): Name of the channel ('red', 'green', or 'blue').
         color (Qt.GlobalColor): Qt color constant for the channel.
-        processed_image (numpy.ndarray or None): The current processed image for preview.
+        processed_image (Union[numpy.ndarray, None]): The current processed image for preview.
         btn_load (QPushButton): Button to load the channel image.
         preview_label (QLabel): Label showing the preview image.
-        slider_brightness (ResetSlider): Slider for brightness adjustment.
-        slider_contrast (ResetSlider): Slider for contrast adjustment.
-        slider_intensity (ResetSlider): Slider for intensity adjustment.
+        sliders (dict[str, ResetSlider]): Dictionary containing sliders for brightness, contrast, and intensity.
+
+    Methods:
+        init_ui(): Sets up the layout, widgets, and sliders for the channel controller.
+        create_slider(min_val: int, max_val: int, default: int) -> ResetSlider: Creates a configured slider widget.
+        update_preview(): Updates the preview label with the current processed image.
 
     Cross-references:
         - main_window.MainWindow: Used for each channel.

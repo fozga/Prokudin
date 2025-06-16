@@ -93,8 +93,8 @@ def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
         - update_main_display
     """
     if main_window.aligned[channel_idx] is not None:
-        brightness: int = main_window.controllers[channel_idx].slider_brightness.value()
-        contrast: int = main_window.controllers[channel_idx].slider_contrast.value()
+        brightness: int = main_window.controllers[channel_idx].sliders["brightness"].value()
+        contrast: int = main_window.controllers[channel_idx].sliders["contrast"].value()
         result = apply_adjustments(main_window.aligned[channel_idx], brightness, contrast)
         if result is not None:
             # Create a new list to avoid assignment issues

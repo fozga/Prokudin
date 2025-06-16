@@ -60,15 +60,15 @@ def show_combined_image(main_window: "MainWindow") -> None:
                 cropped_channels.append(cropped)
             else:
                 cropped_channels.append(None)
-        intensities = [ctrl.slider_intensity.value() for ctrl in main_window.controllers]
+        intensities = [ctrl.sliders["intensity"].value() for ctrl in main_window.controllers]
         combined = combine_channels(cropped_channels, intensities)
         q_img = convert_to_qimage(combined)
         main_window.viewer.set_image(QPixmap.fromImage(q_img))
         return
 
     # Otherwise use full images
-    intensities = [ctrl.slider_intensity.value() for ctrl in main_window.controllers]
-    combined = combine_channels(channels, intensities)
+    intensities = [ctrl.sliders["intensity"].value() for ctrl in main_window.controllers]
+    combined = combine_channels(main_window.processed, intensities)
     q_img = convert_to_qimage(combined)
     main_window.viewer.set_image(QPixmap.fromImage(q_img))
 
