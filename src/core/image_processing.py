@@ -37,7 +37,7 @@ def apply_adjustments(
     return np.clip(img, 0, 255).astype(np.uint8)
 
 
-def combine_channels(channels: List[Union[np.ndarray, None]], intensities: List[float]) -> Union[np.ndarray, None]:
+def combine_channels(channels: List[Union[np.ndarray, None]], intensities: List[int]) -> Union[np.ndarray, None]:
     """
     Combines three grayscale channels into RGB image with intensity adjustments.
 

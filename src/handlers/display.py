@@ -51,12 +51,12 @@ def show_combined_image(main_window: "MainWindow") -> None:
         return
 
     # If not in crop mode and a crop rectangle is set, crop the processed images on-the-fly
-    crop_rect = getattr(main_window.viewer, '_saved_crop_rect', None)
+    crop_rect = getattr(main_window.viewer, "_saved_crop_rect", None)
     if not main_window.crop_mode and crop_rect is not None:
-        cropped_channels = []
+        cropped_channels: List[np.ndarray | None] = []
         for img in main_window.processed:
             if img is not None:
-                cropped = img[crop_rect.top():crop_rect.bottom()+1, crop_rect.left():crop_rect.right()+1]
+                cropped = img[crop_rect.top(): crop_rect.bottom() + 1, crop_rect.left(): crop_rect.right() + 1]
                 cropped_channels.append(cropped)
             else:
                 cropped_channels.append(None)
@@ -67,8 +67,9 @@ def show_combined_image(main_window: "MainWindow") -> None:
         return
 
     # Otherwise use full images
+    channels = cast(List[np.ndarray | None], main_window.processed)
     intensities = [ctrl.sliders["intensity"].value() for ctrl in main_window.controllers]
-    combined = combine_channels(main_window.processed, intensities)
+    combined = combine_channels(channels, intensities)
     q_img = convert_to_qimage(combined)
     main_window.viewer.set_image(QPixmap.fromImage(q_img))
 
@@ -86,10 +87,10 @@ def show_single_channel_image(main_window: "MainWindow") -> None:
     img = main_window.processed[main_window.current_channel]
     if img is not None:
         # If not in crop mode and a crop rectangle is set, crop the processed image on-the-fly
-        crop_rect = getattr(main_window.viewer, '_saved_crop_rect', None)
+        crop_rect = getattr(main_window.viewer, "_saved_crop_rect", None)
         if not main_window.crop_mode and crop_rect is not None:
-            cropped = img[crop_rect.top():crop_rect.bottom()+1, crop_rect.left():crop_rect.right()+1]
+            cropped = img[crop_rect.top(): crop_rect.bottom() + 1, crop_rect.left(): crop_rect.right() + 1]
             img = cropped
-        rgb_img = np.stack([img]*3, axis=-1)
+        rgb_img = np.stack([img] * 3, axis=-1)
         q_img = convert_to_qimage(rgb_img)
         main_window.viewer.set_image(QPixmap.fromImage(q_img))

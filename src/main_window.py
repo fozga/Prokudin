@@ -3,11 +3,11 @@ Main application window and UI layout for the RGB Channel Processor.
 Handles state management, user interactions, and connects UI components to processing logic.
 """
 
-from typing import Callable
+from typing import Callable, Union
 
-from PyQt5.QtCore import Qt, QRect
-from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtGui import QMouseEvent, QKeyEvent
+from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget
 
 from .handlers.channels import adjust_channel, load_channel, show_single_channel
 from .handlers.display import update_main_display
@@ -52,13 +52,13 @@ class MainWindow(QMainWindow):
         self.processed = [None, None, None]
         # Display state
         self.show_combined = True  # If True, show combined RGB; else show single channel
-        self.current_channel = 0   # Index of the currently selected channel
-        
+        self.current_channel = 0  # Index of the currently selected channel
+
         # Crop-related state
         self.crop_mode = False
-        self.crop_rect = None
-        self.crop_ratio = None
-        
+        self.crop_rect: Union[QRect, None] = None
+        self.crop_ratio: Union[tuple[int, int], None] = None
+
         self.init_ui()
 
     def init_ui(self) -> None:
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(main_widget)
 
-    def toggle_crop_mode(self):
+    def toggle_crop_mode(self) -> None:
         """
         Toggles the crop mode in the application.
 
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
         self.crop_mode_btn.setVisible(False)
         self.crop_controls_widget.setVisible(True)
         # Use last saved crop rectangle if available
-        if hasattr(self.viewer, '_saved_crop_rect') and self.viewer._saved_crop_rect:
+        if hasattr(self.viewer, "_saved_crop_rect") and self.viewer._saved_crop_rect:
             self.crop_rect = QRect(self.viewer._saved_crop_rect)
         else:
             if any(img is not None for img in self.processed):
@@ -196,14 +196,14 @@ class MainWindow(QMainWindow):
                         y = (img_h - rect_h) // 2
                         self.crop_rect = QRect(x, y, rect_w, rect_h)
                         break
-                if self.crop_ratio:
+                if self.crop_ratio and self.crop_rect is not None:
                     self.crop_rect = self._get_aspect_crop_rect(self.crop_rect, self.crop_ratio)
         self.viewer.set_crop_mode(self.crop_mode)
         if self.crop_rect:
             self.viewer.set_crop_rect(self.crop_rect)
         update_main_display(self)
 
-    def cancel_crop(self):
+    def cancel_crop(self) -> None:
         """
         Cancels the current crop operation.
 
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
-        if hasattr(self.viewer, '_saved_crop_rect') and self.viewer._saved_crop_rect:
+        if hasattr(self.viewer, "_saved_crop_rect") and self.viewer._saved_crop_rect:
             self.crop_rect = QRect(self.viewer._saved_crop_rect)
             self.viewer.set_crop_rect(self.crop_rect)
         else:
@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
         self.viewer.set_crop_mode(False)
         update_main_display(self)
 
-    def set_crop_ratio(self, index):
+    def set_crop_ratio(self) -> None:
         """
         Sets the aspect ratio for the crop rectangle.
 
@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
             self.crop_rect = current_rect
         update_main_display(self)
 
-    def _get_aspect_crop_rect(self, rect, ratio):
+    def _get_aspect_crop_rect(self, rect: QRect, ratio: tuple[int, int]) -> QRect:
         """
         Returns the largest rectangle with the given aspect ratio that fits within the given rect,
         centered at the same point as the original rect.
@@ -299,7 +299,7 @@ class MainWindow(QMainWindow):
         new_top = center.y() - new_h // 2
         return QRect(new_left, new_top, new_w, new_h)
 
-    def apply_crop(self):
+    def apply_crop(self) -> None:
         """
         Applies the current crop rectangle to the processed images.
 
@@ -326,7 +326,7 @@ class MainWindow(QMainWindow):
         self.viewer.set_crop_mode(False)
         update_main_display(self)
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # pylint: disable=C0103
         """
         Handle key press events for channel switching and display mode.
 
@@ -346,15 +346,15 @@ class MainWindow(QMainWindow):
             - apply_crop
         """
         if self.crop_mode:
-            if event.key() == Qt.Key_Escape:
+            if event.key() == Qt.Key.Key_Escape:
                 self.cancel_crop()
-            elif event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            elif event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
                 self.apply_crop()
             # Do not allow toggling crop mode with 'C' while in crop mode
             else:
                 super().keyPressEvent(event)
         else:
-            if event.key() == Qt.Key_C:
+            if event.key() == Qt.Key.Key_C:
                 self.toggle_crop_mode()
             elif not handle_key_press(self, event):
                 super().keyPressEvent(event)
