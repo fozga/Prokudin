@@ -57,8 +57,8 @@ def show_combined_image(main_window: "MainWindow") -> None:
         for img in main_window.processed:
             if img is not None:
                 cropped = img[
-                    saved_crop_rect.top() : saved_crop_rect.bottom() + 1,
-                    saved_crop_rect.left() : saved_crop_rect.right() + 1,
+                    saved_crop_rect.top(): saved_crop_rect.bottom() + 1,
+                    saved_crop_rect.left(): saved_crop_rect.right() + 1,
                 ].copy()
                 cropped_channels.append(cropped)
             else:
@@ -101,8 +101,8 @@ def show_single_channel_image(main_window: "MainWindow") -> None:
         saved_crop_rect = main_window.viewer.get_saved_crop_rect()
         if not main_window.crop_mode and saved_crop_rect is not None:
             img = img[
-                saved_crop_rect.top() : saved_crop_rect.bottom() + 1,
-                saved_crop_rect.left() : saved_crop_rect.right() + 1,
+                saved_crop_rect.top(): saved_crop_rect.bottom() + 1,
+                saved_crop_rect.left(): saved_crop_rect.right() + 1,
             ].copy()
 
         # Convert to RGB (by stacking the same channel 3 times)

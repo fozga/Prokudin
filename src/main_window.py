@@ -142,35 +142,36 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             def create_click_handler(index: int, ctrl: ChannelController = controller) -> Callable[[QMouseEvent], None]:
                 """
                 Creates a click handler function for channel preview labels.
-                
+
                 This factory function generates a click handler that shows a single channel
                 when its preview label is clicked, while maintaining the original behavior
                 of the QLabel's mousePressEvent.
-                
+
                 Parameters
                 ----------
                 index : int
                     The index of the channel to display when clicked.
                 ctrl : ChannelController, optional
                     The channel controller instance to use. Defaults to the global controller.
-                    
+
                 Returns
                 -------
                 Callable[[QMouseEvent], None]
                     A function that handles mouse press events on channel preview labels.
                 """
+
                 def click_handler(event: QMouseEvent) -> None:
                     """
                     Handle mouse click events on the channel preview label.
-                    
+
                     This function shows a single channel when the preview label is clicked and then
                     passes the event to the original mousePressEvent method to maintain expected behavior.
-                    
+
                     Parameters
                     ----------
                     event : QMouseEvent
                         The mouse event that triggered this handler.
-                        
+
                     Returns
                     -------
                     None
