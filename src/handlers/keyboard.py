@@ -18,11 +18,11 @@ def handle_key_press(main_window: "MainWindow", event: QKeyEvent) -> bool:
     Handles keyboard shortcuts for channel switching and display modes.
 
     Args:
-        main_window: Reference to the main application window
-        event: QKeyEvent from PyQt5's key press handler
+        main_window (QMainWindow): Reference to the main application window.
+        event (QKeyEvent): QKeyEvent from PyQt5's key press handler.
 
     Returns:
-        bool: True if the key was handled, False otherwise (allows event propagation)
+        bool: True if the key was handled, False otherwise (allows event propagation).
 
     Key Bindings:
         - 1: Show Red channel (index 0)
@@ -34,6 +34,10 @@ def handle_key_press(main_window: "MainWindow", event: QKeyEvent) -> bool:
         - Updates display state in main_window
         - Calls update_main_display() to refresh the UI
         - Accepts the event if handled to prevent further propagation
+
+    Cross-references:
+        - update_main_display
+        - main_window.MainWindow
     """
     if event.key() == Qt.Key.Key_1:
         main_window.show_combined = False

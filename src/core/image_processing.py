@@ -16,15 +16,18 @@ def apply_adjustments(
     Applies brightness and contrast adjustments to a grayscale image.
 
     Args:
-        image (numpy.ndarray | None): Input 8-bit grayscale image (shape: HxW)
-        brightness (int): [-100, 100] - additive brightness adjustment
-        contrast (int): [-100, 100] - multiplicative contrast adjustment (percentage)
+        image (numpy.ndarray or None): Input 8-bit grayscale image (shape: HxW).
+        brightness (int): [-100, 100] - additive brightness adjustment.
+        contrast (int): [-100, 100] - multiplicative contrast adjustment (percentage).
 
     Returns:
-        numpy.ndarray: Adjusted 8-bit image (uint8) or None if input is invalid
+        numpy.ndarray: Adjusted 8-bit image (uint8) or None if input is invalid.
 
     Example:
         >>> adjusted = apply_adjustments(img, brightness=20, contrast=10)
+
+    Cross-references:
+        - handlers.channels.adjust_channel
     """
     if image is None:
         return None
@@ -39,15 +42,15 @@ def combine_channels(channels: List[Union[np.ndarray, None]], intensities: List[
     Combines three grayscale channels into RGB image with intensity adjustments.
 
     Args:
-        channels (list): [R, G, B] 8-bit grayscale images (uint8, shape: HxW)
-        intensities (list): [R%, G%, B%] intensity multipliers (0-200%)
+        channels (list of numpy.ndarray): [R, G, B] 8-bit grayscale images (uint8, shape: HxW).
+        intensities (list of int): [R%, G%, B%] intensity multipliers (0-200%).
 
     Returns:
         numpy.ndarray | None: Combined 8-bit RGB image (uint8, shape: HxWx3)
                     or None if any channel missing
 
-    Note:
-        Output image uses float32 calculations for precision before conversion
+    Cross-references:
+        - handlers.display.show_combined_image
     """
     if any(channel is None for channel in channels):
         return None
@@ -75,10 +78,11 @@ def convert_to_qimage(image: Union[np.ndarray, None]) -> QImage:
             - RGB: HxWx3 (uint8)
 
     Returns:
-        QImage: Empty QImage if input invalid, otherwise formatted image
+        QImage: Empty QImage if input invalid, otherwise formatted image.
 
-    Note:
-        Uses image buffer directly (no copy) - original must persist while in use
+    Cross-references:
+        - handlers.display.show_combined_image
+        - handlers.display.show_single_channel_image
     """
     if image is None:
         return QImage()

@@ -14,13 +14,10 @@ from PyQt5.QtWidgets import QSlider
 
 class ResetSlider(QSlider):
     """
-    A QSlider subclass that emits a custom signal on double-click.
+    QSlider subclass with double-click reset functionality.
 
-    This slider is intended for use in UI scenarios where the user may want to
-    quickly reset the slider to a default value by double-clicking it.
-
-    Signals:
-        doubleClicked: Emitted when the slider is double-clicked with the mouse.
+    Cross-references:
+        - ChannelController: Used for brightness, contrast, intensity sliders.
     """
 
     doubleClicked = pyqtSignal()
@@ -32,6 +29,13 @@ class ResetSlider(QSlider):
     def mouseDoubleClickEvent(self, event: Union[QMouseEvent, None]) -> None:  # pylint: disable=C0103
         """
         Handles the mouse double-click event.
+
+        Args:
+            self (ResetSlider): The instance of the slider.
+            event (QMouseEvent): The mouse double-click event.
+
+        Returns:
+            None
 
         Emits the doubleClicked signal and then calls the base class implementation.
 

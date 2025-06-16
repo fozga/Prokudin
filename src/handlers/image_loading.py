@@ -18,7 +18,7 @@ def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
     and converts it to grayscale for further processing.
 
     Args:
-        parent: The parent widget for the QFileDialog (typically the main window).
+        parent (QWidget): The parent widget for the QFileDialog (typically the main window).
 
     Returns:
         numpy.ndarray or None: 2D grayscale image as a NumPy array (dtype=uint8),
@@ -35,6 +35,9 @@ def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
         gray_image = load_raw_image(self)
         if gray_image is not None:
             # Proceed with processing
+
+    Cross-references:
+        - handlers.channels.load_channel
     """
     options = QFileDialog.Options()
     filename, _ = QFileDialog.getOpenFileName(parent, "Select ARW File", "", "Sony RAW Files (*.arw)", options=options)

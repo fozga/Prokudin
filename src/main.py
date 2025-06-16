@@ -24,9 +24,14 @@ def main() -> None:
     """
     Initialize and run the RGB Channel Processor application.
 
-    - Creates a QApplication instance.
-    - Instantiates and displays the main window.
-    - Starts the Qt event loop.
+    This function creates a QApplication instance, instantiates and displays the main window,
+    and starts the Qt event loop. The application will exit when the main window is closed.
+
+    Args:
+        None
+
+    Returns:
+        None
     """
     app = QApplication(sys.argv)
     window = MainWindow()

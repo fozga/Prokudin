@@ -17,16 +17,16 @@ def align_images(original_images: list) -> list:
     and affine transformation.
 
     Args:
-        original_images (list): List of three numpy arrays [R, G, B] in grayscale
+        original_images (list of numpy.ndarray): List of three grayscale images (R, G, B), each as a 2D numpy array.
 
     Returns:
-        list: Aligned images in order [R_aligned, G_aligned, B_aligned]
+        list of numpy.ndarray: List of aligned images [R, G, B].
 
     Raises:
-        AlignmentError: If less than min_matches features are found between channels
+        AlignmentError: If alignment fails due to insufficient matches or transformation errors.
 
-    Example:
-        aligned = align_images([red_ch, green_ch, blue_ch])
+    Cross-references:
+        - handlers.channels.load_channel
     """
 
     # Start with copies of the originals
