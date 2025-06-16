@@ -4,7 +4,7 @@ Display handlers for updating the main image view and channel previews in the ap
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, cast
+from typing import TYPE_CHECKING, List
 
 import numpy as np
 from PyQt5.QtCore import QRectF
@@ -57,8 +57,8 @@ def show_combined_image(main_window: "MainWindow") -> None:
         for img in main_window.processed:
             if img is not None:
                 cropped = img[
-                    saved_crop_rect.top():saved_crop_rect.bottom()+1, 
-                    saved_crop_rect.left():saved_crop_rect.right()+1
+                    saved_crop_rect.top() : saved_crop_rect.bottom() + 1,
+                    saved_crop_rect.left() : saved_crop_rect.right() + 1,
                 ].copy()
                 cropped_channels.append(cropped)
             else:
@@ -70,7 +70,7 @@ def show_combined_image(main_window: "MainWindow") -> None:
         return
 
     # Otherwise use full images
-    channels = []
+    channels: List[np.ndarray | None] = []
     for img in main_window.processed:
         if img is not None:
             channels.append(img.copy())
@@ -79,7 +79,7 @@ def show_combined_image(main_window: "MainWindow") -> None:
 
     intensities = [ctrl.sliders["intensity"].value() for ctrl in main_window.controllers]
     combined = combine_channels(channels, intensities)
-    
+
     if combined is not None:
         q_img = convert_to_qimage(combined)
         main_window.viewer.set_image(QPixmap.fromImage(q_img))
@@ -101,13 +101,13 @@ def show_single_channel_image(main_window: "MainWindow") -> None:
         saved_crop_rect = main_window.viewer.get_saved_crop_rect()
         if not main_window.crop_mode and saved_crop_rect is not None:
             img = img[
-                saved_crop_rect.top():saved_crop_rect.bottom()+1, 
-                saved_crop_rect.left():saved_crop_rect.right()+1
+                saved_crop_rect.top() : saved_crop_rect.bottom() + 1,
+                saved_crop_rect.left() : saved_crop_rect.right() + 1,
             ].copy()
-        
+
         # Convert to RGB (by stacking the same channel 3 times)
         rgb_img = np.stack([img] * 3, axis=-1)
-        
+
         # Convert to QImage and display
         q_img = convert_to_qimage(rgb_img)
         main_window.viewer.set_image(QPixmap.fromImage(q_img))

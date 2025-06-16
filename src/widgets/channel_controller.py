@@ -6,7 +6,7 @@ from typing import Union
 
 import cv2  # type: ignore
 import numpy as np
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QGroupBox, QLabel, QPushButton, QVBoxLayout, QWidget
 
@@ -132,37 +132,36 @@ class ChannelController(QGroupBox):
         if self.processed_image is not None:
             # Create a copy of the image to avoid potential reference issues
             preview_img = self.processed_image.copy()
-            
+
             # Get the crop rectangle from the parent's viewer if possible
             parent = self.parent()
             while parent:
-                if hasattr(parent, 'viewer') and hasattr(parent.viewer, 'get_saved_crop_rect'):
+                if hasattr(parent, "viewer") and hasattr(parent.viewer, "get_saved_crop_rect"):
                     saved_crop_rect = parent.viewer.get_saved_crop_rect()
-                    if saved_crop_rect and not getattr(parent, 'crop_mode', False):
+                    if saved_crop_rect and not getattr(parent, "crop_mode", False):
                         # Apply crop on-the-fly for previews too
                         h, w = preview_img.shape[:2]
                         valid_rect = QRect(0, 0, w, h).intersected(saved_crop_rect)
                         if valid_rect.isValid() and valid_rect.width() > 0 and valid_rect.height() > 0:
                             preview_img = preview_img[
-                                valid_rect.top():valid_rect.bottom()+1,
-                                valid_rect.left():valid_rect.right()+1
+                                valid_rect.top() : valid_rect.bottom() + 1, valid_rect.left() : valid_rect.right() + 1
                             ].copy()
                     break
                 parent = parent.parent()
-                
+
             # Resize while preserving aspect ratio
             h, w = preview_img.shape[:2]
             aspect = w / h
-            
-            if aspect > 160/120:  # Width-constrained
+
+            if aspect > 160 / 120:  # Width-constrained
                 new_w = 160
                 new_h = int(new_w / aspect)
             else:  # Height-constrained
                 new_h = 120
                 new_w = int(new_h * aspect)
-                
+
             preview = cv2.resize(preview_img, (new_w, new_h))  # pylint: disable=E1101
-            
+
             # Create QImage directly from the numpy array
             q_img = QImage(
                 preview.data, preview.shape[1], preview.shape[0], preview.strides[0], QImage.Format_Grayscale8

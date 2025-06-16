@@ -22,4 +22,4 @@ jobs:
       - name: Install interrogate
         run: pip install interrogate
       - name: Check docstring coverage
-        run: interrogate --ignore-init-method --fail-under=100 .
+        run: interrogate --ignore-init-method --fail-under=100 -vv .

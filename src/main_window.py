@@ -9,8 +9,8 @@ from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QKeyEvent, QMouseEvent
 from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget
 
-from .handlers.channels import adjust_channel, load_channel, show_single_channel
-from .handlers.display import update_main_display
+from .handlers.channels import adjust_channel, load_channel, show_single_channel, update_channel_preview
+from .handlers.display import show_combined_image, show_single_channel_image, update_main_display
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
 from .widgets.image_viewer import ImageViewer
@@ -140,7 +140,41 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             # Fix the mousePressEvent assignment with properly typed functions
             # Pass controller as an argument to avoid cell-var-from-loop issue
             def create_click_handler(index: int, ctrl: ChannelController = controller) -> Callable[[QMouseEvent], None]:
+                """
+                Creates a click handler function for channel preview labels.
+                
+                This factory function generates a click handler that shows a single channel
+                when its preview label is clicked, while maintaining the original behavior
+                of the QLabel's mousePressEvent.
+                
+                Parameters
+                ----------
+                index : int
+                    The index of the channel to display when clicked.
+                ctrl : ChannelController, optional
+                    The channel controller instance to use. Defaults to the global controller.
+                    
+                Returns
+                -------
+                Callable[[QMouseEvent], None]
+                    A function that handles mouse press events on channel preview labels.
+                """
                 def click_handler(event: QMouseEvent) -> None:
+                    """
+                    Handle mouse click events on the channel preview label.
+                    
+                    This function shows a single channel when the preview label is clicked and then
+                    passes the event to the original mousePressEvent method to maintain expected behavior.
+                    
+                    Parameters
+                    ----------
+                    event : QMouseEvent
+                        The mouse event that triggered this handler.
+                        
+                    Returns
+                    -------
+                    None
+                    """
                     show_single_channel(self, index)
                     # Call the original method to maintain expected behavior
                     QLabel.mousePressEvent(ctrl.preview_label, event)
@@ -321,47 +355,46 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         crop_rect = self.viewer.get_crop_rect() if self.viewer else self.crop_rect
         if not crop_rect or not any(img is not None for img in self.processed):
             return
-            
-        # Get the crop rectangle BEFORE applying viewer crop
-        saved_rect = QRect(self.viewer.get_crop_rect()) if self.viewer.get_crop_rect() else None
-        if not saved_rect:
+
+        crop_rect = self.viewer.get_crop_rect()
+        saved_rect = QRect(crop_rect) if crop_rect is not None else None
+        if saved_rect is None:
             return
-            
+
         # Make sure rectangle is valid and within bounds
         for i in range(3):
             if self.processed[i] is not None:
-                img_height, img_width = self.processed[i].shape[:2]
-                valid_rect = QRect(0, 0, img_width, img_height).intersected(saved_rect)
-                saved_rect = valid_rect
-                break
-                
+                img = self.processed[i]
+                if img is not None:  # Double-check to satisfy type checker
+                    img_height, img_width = img.shape[:2]
+                    valid_rect = QRect(0, 0, img_width, img_height).intersected(saved_rect)
+                    saved_rect = valid_rect
+                    break
+
         if not saved_rect.isValid() or saved_rect.width() <= 0 or saved_rect.height() <= 0:
             return
-        
+
         # Apply crop to the image in the viewer's scene (visual only)
         self.viewer.confirm_crop()
-        
+
         # Store the crop rectangle for on-the-fly cropping during display
         # Don't modify the underlying images - this is the key change!
         self.viewer.set_saved_crop_rect(saved_rect)
-        
+
         # Update all channel previews
         for i in range(3):
-            from .handlers.channels import update_channel_preview
             update_channel_preview(self, i)
-        
+
         # Reset crop mode and UI
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
         self.viewer.set_crop_mode(False)
-        
+
         # Force a full display update
         if self.show_combined:
-            from .handlers.display import show_combined_image
             show_combined_image(self)
         else:
-            from .handlers.display import show_single_channel_image
             show_single_channel_image(self)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # pylint: disable=C0103
