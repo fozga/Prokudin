@@ -6,7 +6,7 @@ Manages crop rectangle, handles, and interactions.
 from dataclasses import dataclass
 from typing import Union
 
-from PyQt5.QtCore import QPointF, QRect, QRectF, Qt
+from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, Qt
 from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import QApplication, QGraphicsPixmapItem, QGraphicsView
 
@@ -190,13 +190,13 @@ class CropHandler:
         self._rectangles["current"] = new_rect
         self.view.viewport().update()
 
-    def get_handle_at(self, pos: QPointF) -> Union[str, None]:
+    def get_handle_at(self, pos: QPoint) -> Union[str, None]:
         """Determine which crop handle is under the given mouse position."""
         if not self._rectangles["current"]:
             return None
 
         # Convert view coordinates to scene coordinates
-        scene_pos = self.view.mapToScene(pos)
+        scene_pos = self.view.mapToScene(int(pos.x()), int(pos.y()))
         rect = self._rectangles["current"]
         handle_size = self._state["crop_handle_size"]
 
@@ -837,7 +837,7 @@ class CropHandler:
 
         if self._state["dragging"] and self._rectangles["current"]:
             current_pos = self.view.mapToScene(event.pos())
-            if self._drag_info["handle"] == "move":
+            if self._drag_info["handle"] == "move" and isinstance(self._drag_info["start"], QPointF):
                 delta = current_pos - self._drag_info["start"]
                 self._drag_info["start"] = current_pos
                 self._rectangles["current"].translate(int(delta.x()), int(delta.y()))

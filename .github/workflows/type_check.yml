@@ -21,9 +21,11 @@ jobs:
           python-version: '3.x'
       - name: Install PyQt5
         run: pip install PyQt5
+      - name: Install PyQt5 stubs
+        run: pip install PyQt5-stubs
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Install mypy
-        run: pip install mypy==1.14.1
+        run: pip install mypy==1.16.1
       - name: Run type checking
         run: mypy --explicit-package-bases src/
