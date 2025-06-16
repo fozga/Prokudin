@@ -6,7 +6,7 @@ Handles state management, user interactions, and connects UI components to proce
 from typing import Callable, Union
 
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QMouseEvent, QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QMouseEvent
 from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget
 
 from .handlers.channels import adjust_channel, load_channel, show_single_channel
@@ -16,7 +16,7 @@ from .widgets.channel_controller import ChannelController
 from .widgets.image_viewer import ImageViewer
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
     """
     Main application window for the RGB Channel Processor.
 
@@ -183,8 +183,9 @@ class MainWindow(QMainWindow):
         self.crop_mode_btn.setVisible(False)
         self.crop_controls_widget.setVisible(True)
         # Use last saved crop rectangle if available
-        if hasattr(self.viewer, "_saved_crop_rect") and self.viewer._saved_crop_rect:
-            self.crop_rect = QRect(self.viewer._saved_crop_rect)
+        saved_crop_rect = self.viewer.get_saved_crop_rect() if self.viewer else None
+        if saved_crop_rect:
+            self.crop_rect = QRect(saved_crop_rect)
         else:
             if any(img is not None for img in self.processed):
                 for img in self.processed:
@@ -223,8 +224,9 @@ class MainWindow(QMainWindow):
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
-        if hasattr(self.viewer, "_saved_crop_rect") and self.viewer._saved_crop_rect:
-            self.crop_rect = QRect(self.viewer._saved_crop_rect)
+        saved_crop_rect = self.viewer.get_saved_crop_rect() if self.viewer else None
+        if saved_crop_rect:
+            self.crop_rect = QRect(saved_crop_rect)
             self.viewer.set_crop_rect(self.crop_rect)
         else:
             self.crop_rect = None
@@ -251,7 +253,7 @@ class MainWindow(QMainWindow):
         """
         self.crop_ratio = self.crop_ratio_combo.currentData()
         # Always get the current rectangle from the viewer
-        current_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
+        current_rect = self.viewer.get_crop_rect() if self.viewer else self.crop_rect
         if current_rect and self.crop_ratio:
             new_rect = self._get_aspect_crop_rect(current_rect, self.crop_ratio)
             self.crop_rect = new_rect
@@ -316,15 +318,51 @@ class MainWindow(QMainWindow):
             - ImageViewer._crop_rect, _saved_crop_rect
             - update_main_display
         """
-        crop_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
+        crop_rect = self.viewer.get_crop_rect() if self.viewer else self.crop_rect
         if not crop_rect or not any(img is not None for img in self.processed):
             return
-        self.viewer._saved_crop_rect = crop_rect
+            
+        # Get the crop rectangle BEFORE applying viewer crop
+        saved_rect = QRect(self.viewer.get_crop_rect()) if self.viewer.get_crop_rect() else None
+        if not saved_rect:
+            return
+            
+        # Make sure rectangle is valid and within bounds
+        for i in range(3):
+            if self.processed[i] is not None:
+                img_height, img_width = self.processed[i].shape[:2]
+                valid_rect = QRect(0, 0, img_width, img_height).intersected(saved_rect)
+                saved_rect = valid_rect
+                break
+                
+        if not saved_rect.isValid() or saved_rect.width() <= 0 or saved_rect.height() <= 0:
+            return
+        
+        # Apply crop to the image in the viewer's scene (visual only)
+        self.viewer.confirm_crop()
+        
+        # Store the crop rectangle for on-the-fly cropping during display
+        # Don't modify the underlying images - this is the key change!
+        self.viewer.set_saved_crop_rect(saved_rect)
+        
+        # Update all channel previews
+        for i in range(3):
+            from .handlers.channels import update_channel_preview
+            update_channel_preview(self, i)
+        
+        # Reset crop mode and UI
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
         self.viewer.set_crop_mode(False)
-        update_main_display(self)
+        
+        # Force a full display update
+        if self.show_combined:
+            from .handlers.display import show_combined_image
+            show_combined_image(self)
+        else:
+            from .handlers.display import show_single_channel_image
+            show_single_channel_image(self)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # pylint: disable=C0103
         """
