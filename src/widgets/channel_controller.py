@@ -144,7 +144,7 @@ class ChannelController(QGroupBox):
                         valid_rect = QRect(0, 0, w, h).intersected(saved_crop_rect)
                         if valid_rect.isValid() and valid_rect.width() > 0 and valid_rect.height() > 0:
                             preview_img = preview_img[
-                                valid_rect.top(): valid_rect.bottom() + 1, valid_rect.left(): valid_rect.right() + 1
+                                valid_rect.top() : valid_rect.bottom() + 1, valid_rect.left() : valid_rect.right() + 1
                             ].copy()
                     break
                 parent = parent.parent()
