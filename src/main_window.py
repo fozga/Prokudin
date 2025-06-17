@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushBu
 
 from .handlers.channels import adjust_channel, load_channel, show_single_channel, update_channel_preview
 from .handlers.display import show_combined_image, show_single_channel_image, update_main_display
+from .handlers.image_saving import save_image_with_dialog
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
 from .widgets.image_viewer import ImageViewer
@@ -83,6 +84,11 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
 
+        # Add save button
+        self.save_btn = QPushButton("Save")
+        self.save_btn.clicked.connect(self.save_images)
+        self.save_btn.setEnabled(False)  # Initially disabled
+        
         # Add crop mode button (QPushButton)
         self.crop_mode_btn = QPushButton("Crop")
         self.crop_mode_btn.clicked.connect(self.toggle_crop_mode)
@@ -115,7 +121,14 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Main vertical layout for left side (crop button + crop controls + image viewer)
         left_panel = QVBoxLayout()
-        left_panel.addWidget(self.crop_mode_btn)
+        
+        # Create a horizontal layout for the buttons
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.save_btn)
+        buttons_layout.addWidget(self.crop_mode_btn)
+        
+        # Add the buttons layout to the left panel instead of just the crop button
+        left_panel.addLayout(buttons_layout)
         left_panel.addWidget(self.crop_controls_widget)
         self.viewer = ImageViewer()
         left_panel.addWidget(self.viewer, 70)
@@ -191,6 +204,9 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         main_layout.addLayout(right_panel, 30)
 
         self.setCentralWidget(main_widget)
+
+        # After connecting all signals for loading/adjusting channels, update save button state
+        self.update_save_button_state()
 
     def toggle_crop_mode(self) -> None:
         """
@@ -392,11 +408,42 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.crop_controls_widget.setVisible(False)
         self.viewer.set_crop_mode(False)
 
+        # Update save button state after crop
+        self.update_save_button_state()
+
         # Force a full display update
         if self.show_combined:
             show_combined_image(self)
         else:
             show_single_channel_image(self)
+
+    def save_images(self) -> None:
+        """
+        Handle save button click by opening save dialog and saving images.
+        
+        Args:
+            self (MainWindow): The instance of the main window.
+            
+        Returns:
+            None
+        """
+        success, message = save_image_with_dialog(self)
+        # Here you could add code to display the message to the user
+        # For example, via a status bar or message box
+
+    def update_save_button_state(self) -> None:
+        """
+        Update the enabled state of the save button based on image availability.
+        
+        Args:
+            self (MainWindow): The instance of the main window.
+            
+        Returns:
+            None
+        """
+        # Enable save button if at least one channel image is available
+        has_images = any(img is not None for img in self.aligned)
+        self.save_btn.setEnabled(has_images)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # pylint: disable=C0103
         """

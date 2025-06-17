@@ -75,6 +75,9 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:
             update_channel_preview(main_window, channel_idx)
         update_main_display(main_window)
 
+        # After successfully loading a channel, update save button state
+        main_window.update_save_button_state()
+
 
 def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
     """
