@@ -6,7 +6,7 @@ Provides functions to load raw images, apply adjustments, update previews, and m
 from __future__ import annotations
 
 # Standard library imports
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional, cast
 
 # Third-party imports
 import cv2
@@ -23,7 +23,7 @@ from .display import update_main_display
 from .image_loading import load_raw_image
 
 
-def load_channel(main_window: "MainWindow", channel_idx: int) -> None:
+def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint: disable=too-many-locals
     """
     Loads a raw image file for the specified color channel, updates the application's state,
     and triggers alignment and preview updates.
@@ -46,22 +46,17 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:
     rgb_image = load_raw_image(main_window)
 
     if rgb_image is not None:
-        # Store the RGB image in main_window
-        if not hasattr(main_window, 'original_rgb_images'):
-            # Initialize as a list of None values if it doesn't exist
-            main_window.original_rgb_images = [None, None, None]
-
         # Create a new list to avoid assignment issues
-        original_rgb_images: List[np.ndarray | None] = list(main_window.original_rgb_images)
+        original_rgb_images: List[Optional[np.ndarray]] = list(main_window.original_rgb_images)
         original_rgb_images[channel_idx] = rgb_image
         main_window.original_rgb_images = original_rgb_images  # type: ignore
-        
+
         # Convert RGB to grayscale
         image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
-        
+
         # Create new lists with proper type annotations to avoid assignment issues
-        original_images: List[np.ndarray | None] = list(main_window.original_images)
-        processed: List[np.ndarray | None] = list(main_window.processed)
+        original_images: List[Optional[np.ndarray]] = list(main_window.original_images)
+        processed: List[Optional[np.ndarray]] = list(main_window.processed)
 
         original_images[channel_idx] = image
         processed[channel_idx] = image.copy()
@@ -71,28 +66,39 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:
         main_window.processed = processed  # type: ignore
 
         if all(img is not None for img in main_window.original_images):
-            # Align both grayscale and RGB images
-            aligned_gray, aligned_rgb = align_images(main_window.original_images, main_window.original_rgb_images)
-            
-            # Store aligned grayscale images
-            main_window.aligned = aligned_gray  # type: ignore
-            
-            # Store aligned RGB images
-            main_window.aligned_rgb = aligned_rgb  # type: ignore
+            # Create arrays of ndarray images only, with explicit type casting for mypy
+            gray_images: List[np.ndarray] = []
+            rgb_images: List[np.ndarray] = []
 
-            # Create new list with copies of aligned images, handling None values
-            new_processed: List[np.ndarray | None] = []
-            for img in aligned_gray:
-                if img is not None:
-                    new_processed.append(img.copy())
-                else:
-                    new_processed.append(None)
-
-            main_window.processed = new_processed  # type: ignore
-
+            # Only include non-None images and cast them to numpy arrays
             for i in range(3):
-                adjust_channel(main_window, i)
-                update_channel_preview(main_window, i)
+                if main_window.original_images[i] is not None and main_window.original_rgb_images[i] is not None:
+                    gray_img = cast(np.ndarray, main_window.original_images[i])
+                    rgb_img = cast(np.ndarray, main_window.original_rgb_images[i])
+                    gray_images.append(gray_img)
+                    rgb_images.append(rgb_img)
+
+            # Ensure we have exactly 3 images for each channel
+            if len(gray_images) == 3 and len(rgb_images) == 3:
+                # Align both grayscale and RGB images
+                aligned_gray, aligned_rgb = align_images(gray_images, rgb_images)
+
+                # Store aligned grayscale images
+                main_window.aligned = aligned_gray  # type: ignore
+
+                # Store aligned RGB images
+                main_window.aligned_rgb = aligned_rgb  # type: ignore
+
+                # Create new list with copies of aligned images
+                new_processed: List[Optional[np.ndarray]] = []
+                for img in aligned_gray:
+                    new_processed.append(img.copy())
+
+                main_window.processed = new_processed  # type: ignore
+
+                for i in range(3):
+                    adjust_channel(main_window, i)
+                    update_channel_preview(main_window, i)
         else:
             update_channel_preview(main_window, channel_idx)
         update_main_display(main_window)
@@ -123,7 +129,7 @@ def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
         result = apply_adjustments(main_window.aligned[channel_idx], brightness, contrast)
         if result is not None:
             # Create a new list to avoid assignment issues
-            processed: List[np.ndarray | None] = list(main_window.processed)
+            processed: List[Optional[np.ndarray]] = list(main_window.processed)
             processed[channel_idx] = result
             main_window.processed = processed  # type: ignore
 

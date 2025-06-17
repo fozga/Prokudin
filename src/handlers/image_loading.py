@@ -5,7 +5,6 @@ Provides functions to open file dialogs, load RAW images, and convert them for f
 
 from typing import Union
 
-import cv2  # type: ignore
 import numpy as np
 import rawpy  # type: ignore
 from PyQt5.QtWidgets import QFileDialog, QWidget

@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         # Add original RGB images storage
         self.original_rgb_images = [None, None, None]
         self.aligned_rgb = [None, None, None]
-        
+
         # Display state
         self.show_combined = True  # If True, show combined RGB; else show single channel
         self.current_channel = 0  # Index of the currently selected channel
@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         self.init_ui()
 
-    def init_ui(self) -> None:
+    def init_ui(self) -> None:  # pylint: disable=too-many-statements
         """
         Build the main UI layout: image viewer and channel controllers.
 
@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.save_btn = QPushButton("Save")
         self.save_btn.clicked.connect(self.save_images)
         self.save_btn.setEnabled(False)  # Initially disabled
-        
+
         # Add crop mode button (QPushButton)
         self.crop_mode_btn = QPushButton("Crop")
         self.crop_mode_btn.clicked.connect(self.toggle_crop_mode)
@@ -125,12 +125,12 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Main vertical layout for left side (crop button + crop controls + image viewer)
         left_panel = QVBoxLayout()
-        
+
         # Create a horizontal layout for the buttons
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.save_btn)
         buttons_layout.addWidget(self.crop_mode_btn)
-        
+
         # Add the buttons layout to the left panel instead of just the crop button
         left_panel.addLayout(buttons_layout)
         left_panel.addWidget(self.crop_controls_widget)
@@ -424,24 +424,24 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
     def save_images(self) -> None:
         """
         Handle save button click by opening save dialog and saving images.
-        
+
         Args:
             self (MainWindow): The instance of the main window.
-            
+
         Returns:
             None
         """
-        success, message = save_image_with_dialog(self)
+        save_image_with_dialog(self)
         # Here you could add code to display the message to the user
         # For example, via a status bar or message box
 
     def update_save_button_state(self) -> None:
         """
         Update the enabled state of the save button based on image availability.
-        
+
         Args:
             self (MainWindow): The instance of the main window.
-            
+
         Returns:
             None
         """
