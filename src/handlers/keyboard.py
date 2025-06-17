@@ -1,17 +1,19 @@
 """
-Keyboard event handler utilities for the RGB Channel Processor application.
-
-This module provides functions to handle keyboard shortcuts for channel switching and display mode toggling in the main window.
-
-Cross-references:
-    - handlers.display.update_main_display: Refreshes the main display.
-    - main_window.MainWindow: Main application window.
+Keyboard shortcut handlers for channel switching and display modes in the application.
 """
 
-from PyQt5.QtCore import Qt
-from handlers.display import update_main_display
+from typing import TYPE_CHECKING
 
-def handle_key_press(main_window, event):
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeyEvent
+
+from .display import update_main_display
+
+if TYPE_CHECKING:
+    from ..main_window import MainWindow
+
+
+def handle_key_press(main_window: "MainWindow", event: QKeyEvent) -> bool:
     """
     Handles keyboard shortcuts for channel switching and display modes.
 
@@ -37,25 +39,25 @@ def handle_key_press(main_window, event):
         - update_main_display
         - main_window.MainWindow
     """
-    if event.key() == Qt.Key_1:
+    if event.key() == Qt.Key.Key_1:
         main_window.show_combined = False
         main_window.current_channel = 0
         update_main_display(main_window)
         event.accept()
         return True
-    elif event.key() == Qt.Key_2:
+    if event.key() == Qt.Key.Key_2:
         main_window.show_combined = False
         main_window.current_channel = 1
         update_main_display(main_window)
         event.accept()
         return True
-    elif event.key() == Qt.Key_3:
+    if event.key() == Qt.Key.Key_3:
         main_window.show_combined = False
         main_window.current_channel = 2
         update_main_display(main_window)
         event.accept()
         return True
-    elif event.key() == Qt.Key_A:
+    if event.key() == Qt.Key.Key_A:
         main_window.show_combined = True
         update_main_display(main_window)
         event.accept()

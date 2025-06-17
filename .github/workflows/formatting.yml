@@ -1,0 +1,27 @@
+name: Formatting Check
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  formatting-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install formatting tools
+        run: pip install black isort
+      - name: Check formatting with Black
+        run: black --check src/
+      - name: Check import order with isort
+        run: isort --check-only src/

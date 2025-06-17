@@ -1,17 +1,17 @@
 """
-Image loading utilities for RAW Sony ARW files.
-
-This module provides functions to load and preprocess RAW images for use in the RGB Channel Processor application.
-
-Cross-references:
-    - handlers.channels: Uses load_raw_image for channel loading.
+Image loading utilities for selecting and processing Sony ARW RAW files.
+Provides functions to open file dialogs, load RAW images, and convert them for further processing.
 """
 
-import rawpy
-import cv2
-from PyQt5.QtWidgets import QFileDialog
+from typing import Union
 
-def load_raw_image(parent):
+import cv2  # type: ignore
+import numpy as np
+import rawpy  # type: ignore
+from PyQt5.QtWidgets import QFileDialog, QWidget
+
+
+def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
     """
     Opens a file dialog for the user to select a Sony ARW RAW image,
     loads the image using rawpy, processes it to an 8-bit RGB image,
@@ -40,21 +40,22 @@ def load_raw_image(parent):
         - handlers.channels.load_channel
     """
     options = QFileDialog.Options()
-    filename, _ = QFileDialog.getOpenFileName(
-        parent, "Select ARW File", "", 
-        "Sony RAW Files (*.arw)", options=options)
-    
+    filename, _ = QFileDialog.getOpenFileName(parent, "Select ARW File", "", "Sony RAW Files (*.arw)", options=options)
+
     if not filename:
         return None
-        
+
     try:
         with rawpy.imread(filename) as raw:
-            rgb = raw.postprocess(
-                use_camera_wb=True,
-                no_auto_bright=True,
-                output_bps=8
-            )
-        return cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
-    except Exception as e:
+            rgb = raw.postprocess(use_camera_wb=True, no_auto_bright=True, output_bps=8)
+        # Add explicit type annotation to the return value
+        result: np.ndarray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
+        return result
+    except (
+        rawpy.LibRawFileUnsupportedError,  # pylint: disable=E1101
+        rawpy.LibRawIOError,  # pylint: disable=E1101
+        FileNotFoundError,
+        PermissionError,
+    ) as e:  # pylint: disable=E1101
         print(f"Error loading ARW file: {e}")
         return None

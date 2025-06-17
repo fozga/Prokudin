@@ -1,29 +1,22 @@
 """
-Main application window for the RGB Channel Processor.
-
-This module defines the MainWindow class, which manages the overall GUI layout, application state, and user interactions for the RGB Channel Processor.
-
-Cross-references:
-    - widgets.image_viewer.ImageViewer: Main image display widget.
-    - widgets.channel_controller.ChannelController: Per-channel controls.
-    - handlers.channels: Channel loading and adjustment logic.
-    - handlers.display: Main display update logic.
-    - handlers.keyboard: Keyboard shortcut handling.
-    - core.image_processing: Image combination and adjustment utilities.
+Main application window and UI layout for the RGB Channel Processor.
+Handles state management, user interactions, and connects UI components to processing logic.
 """
 
+from typing import Callable, Union
 
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
-                             QToolBar, QAction, QComboBox, QPushButton)
-from PyQt5.QtCore import Qt, QRect
-from widgets.image_viewer import ImageViewer
-from widgets.channel_controller import ChannelController
-from handlers.keyboard import handle_key_press
-from handlers.channels import load_channel, adjust_channel, update_channel_preview, show_single_channel
-from handlers.display import update_main_display
-from core.image_processing import combine_channels
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtGui import QKeyEvent, QMouseEvent
+from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget
 
-class MainWindow(QMainWindow):
+from .handlers.channels import adjust_channel, load_channel, show_single_channel, update_channel_preview
+from .handlers.display import show_combined_image, show_single_channel_image, update_main_display
+from .handlers.keyboard import handle_key_press
+from .widgets.channel_controller import ChannelController
+from .widgets.image_viewer import ImageViewer
+
+
+class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
     """
     Main application window for the RGB Channel Processor.
 
@@ -37,8 +30,8 @@ class MainWindow(QMainWindow):
         - handlers.display: Functions for updating the main display.
         - handlers.keyboard: Keyboard shortcut handling.
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         """
         Initialize the main window, set up the title, geometry, internal state,
         and construct the user interface.
@@ -59,16 +52,16 @@ class MainWindow(QMainWindow):
         self.processed = [None, None, None]
         # Display state
         self.show_combined = True  # If True, show combined RGB; else show single channel
-        self.current_channel = 0   # Index of the currently selected channel
-        
+        self.current_channel = 0  # Index of the currently selected channel
+
         # Crop-related state
         self.crop_mode = False
-        self.crop_rect = None
-        self.crop_ratio = None
-        
+        self.crop_rect: Union[QRect, None] = None
+        self.crop_ratio: Union[tuple[int, int], None] = None
+
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         """
         Build the main UI layout: image viewer and channel controllers.
 
@@ -132,18 +125,66 @@ class MainWindow(QMainWindow):
         # Right panel with channel controllers
         right_panel = QVBoxLayout()
         self.controllers = [
-            ChannelController("red", Qt.red),
-            ChannelController("green", Qt.green),
-            ChannelController("blue", Qt.blue)
+            ChannelController("red", Qt.GlobalColor.red),
+            ChannelController("green", Qt.GlobalColor.green),
+            ChannelController("blue", Qt.GlobalColor.blue),
         ]
 
         for idx, controller in enumerate(self.controllers):
             # Connect load button and sliders to handlers
             controller.btn_load.clicked.connect(lambda _, i=idx: load_channel(self, i))
-            controller.slider_brightness.valueChanged.connect(lambda v, i=idx: adjust_channel(self, i))
-            controller.slider_contrast.valueChanged.connect(lambda v, i=idx: adjust_channel(self, i))
-            controller.slider_intensity.valueChanged.connect(lambda v, i=idx: update_main_display(self))
-            controller.preview_label.mousePressEvent = (lambda event, i=idx: show_single_channel(self, i))
+            controller.sliders["brightness"].valueChanged.connect(lambda _, i=idx: adjust_channel(self, i))
+            controller.sliders["contrast"].valueChanged.connect(lambda _, i=idx: adjust_channel(self, i))
+            controller.sliders["intensity"].valueChanged.connect(lambda _: update_main_display(self))
+
+            # Fix the mousePressEvent assignment with properly typed functions
+            # Pass controller as an argument to avoid cell-var-from-loop issue
+            def create_click_handler(index: int, ctrl: ChannelController = controller) -> Callable[[QMouseEvent], None]:
+                """
+                Creates a click handler function for channel preview labels.
+
+                This factory function generates a click handler that shows a single channel
+                when its preview label is clicked, while maintaining the original behavior
+                of the QLabel's mousePressEvent.
+
+                Parameters
+                ----------
+                index : int
+                    The index of the channel to display when clicked.
+                ctrl : ChannelController, optional
+                    The channel controller instance to use. Defaults to the global controller.
+
+                Returns
+                -------
+                Callable[[QMouseEvent], None]
+                    A function that handles mouse press events on channel preview labels.
+                """
+
+                def click_handler(event: QMouseEvent) -> None:
+                    """
+                    Handle mouse click events on the channel preview label.
+
+                    This function shows a single channel when the preview label is clicked and then
+                    passes the event to the original mousePressEvent method to maintain expected behavior.
+
+                    Parameters
+                    ----------
+                    event : QMouseEvent
+                        The mouse event that triggered this handler.
+
+                    Returns
+                    -------
+                    None
+                    """
+                    show_single_channel(self, index)
+                    # Call the original method to maintain expected behavior
+                    QLabel.mousePressEvent(ctrl.preview_label, event)
+
+                return click_handler
+
+            # Instead of directly assigning to mousePressEvent, connect to a custom event filter
+            # or subclass QLabel - for now, we'll keep the assignment but add a type ignore comment
+            controller.preview_label.mousePressEvent = create_click_handler(idx)  # type: ignore
 
             right_panel.addWidget(controller)
         right_panel.addStretch()
@@ -151,7 +192,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(main_widget)
 
-    def toggle_crop_mode(self):
+    def toggle_crop_mode(self) -> None:
         """
         Toggles the crop mode in the application.
 
@@ -177,8 +218,9 @@ class MainWindow(QMainWindow):
         self.crop_mode_btn.setVisible(False)
         self.crop_controls_widget.setVisible(True)
         # Use last saved crop rectangle if available
-        if hasattr(self.viewer, '_saved_crop_rect') and self.viewer._saved_crop_rect:
-            self.crop_rect = QRect(self.viewer._saved_crop_rect)
+        saved_crop_rect = self.viewer.get_saved_crop_rect() if self.viewer else None
+        if saved_crop_rect:
+            self.crop_rect = QRect(saved_crop_rect)
         else:
             if any(img is not None for img in self.processed):
                 for img in self.processed:
@@ -190,14 +232,14 @@ class MainWindow(QMainWindow):
                         y = (img_h - rect_h) // 2
                         self.crop_rect = QRect(x, y, rect_w, rect_h)
                         break
-                if self.crop_ratio:
+                if self.crop_ratio and self.crop_rect is not None:
                     self.crop_rect = self._get_aspect_crop_rect(self.crop_rect, self.crop_ratio)
         self.viewer.set_crop_mode(self.crop_mode)
         if self.crop_rect:
             self.viewer.set_crop_rect(self.crop_rect)
         update_main_display(self)
 
-    def cancel_crop(self):
+    def cancel_crop(self) -> None:
         """
         Cancels the current crop operation.
 
@@ -217,15 +259,16 @@ class MainWindow(QMainWindow):
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
-        if hasattr(self.viewer, '_saved_crop_rect') and self.viewer._saved_crop_rect:
-            self.crop_rect = QRect(self.viewer._saved_crop_rect)
+        saved_crop_rect = self.viewer.get_saved_crop_rect() if self.viewer else None
+        if saved_crop_rect:
+            self.crop_rect = QRect(saved_crop_rect)
             self.viewer.set_crop_rect(self.crop_rect)
         else:
             self.crop_rect = None
         self.viewer.set_crop_mode(False)
         update_main_display(self)
 
-    def set_crop_ratio(self, index):
+    def set_crop_ratio(self) -> None:
         """
         Sets the aspect ratio for the crop rectangle.
 
@@ -245,7 +288,7 @@ class MainWindow(QMainWindow):
         """
         self.crop_ratio = self.crop_ratio_combo.currentData()
         # Always get the current rectangle from the viewer
-        current_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
+        current_rect = self.viewer.get_crop_rect() if self.viewer else self.crop_rect
         if current_rect and self.crop_ratio:
             new_rect = self._get_aspect_crop_rect(current_rect, self.crop_ratio)
             self.crop_rect = new_rect
@@ -259,7 +302,7 @@ class MainWindow(QMainWindow):
             self.crop_rect = current_rect
         update_main_display(self)
 
-    def _get_aspect_crop_rect(self, rect, ratio):
+    def _get_aspect_crop_rect(self, rect: QRect, ratio: tuple[int, int]) -> QRect:
         """
         Returns the largest rectangle with the given aspect ratio that fits within the given rect,
         centered at the same point as the original rect.
@@ -293,7 +336,7 @@ class MainWindow(QMainWindow):
         new_top = center.y() - new_h // 2
         return QRect(new_left, new_top, new_w, new_h)
 
-    def apply_crop(self):
+    def apply_crop(self) -> None:
         """
         Applies the current crop rectangle to the processed images.
 
@@ -310,17 +353,52 @@ class MainWindow(QMainWindow):
             - ImageViewer._crop_rect, _saved_crop_rect
             - update_main_display
         """
-        crop_rect = self.viewer._crop_rect if self.viewer._crop_rect else self.crop_rect
+        crop_rect = self.viewer.get_crop_rect() if self.viewer else self.crop_rect
         if not crop_rect or not any(img is not None for img in self.processed):
             return
-        self.viewer._saved_crop_rect = crop_rect
+
+        crop_rect = self.viewer.get_crop_rect()
+        saved_rect = QRect(crop_rect) if crop_rect is not None else None
+        if saved_rect is None:
+            return
+
+        # Make sure rectangle is valid and within bounds
+        for i in range(3):
+            if self.processed[i] is not None:
+                img = self.processed[i]
+                if img is not None:  # Double-check to satisfy type checker
+                    img_height, img_width = img.shape[:2]
+                    valid_rect = QRect(0, 0, img_width, img_height).intersected(saved_rect)
+                    saved_rect = valid_rect
+                    break
+
+        if not saved_rect.isValid() or saved_rect.width() <= 0 or saved_rect.height() <= 0:
+            return
+
+        # Apply crop to the image in the viewer's scene (visual only)
+        self.viewer.confirm_crop()
+
+        # Store the crop rectangle for on-the-fly cropping during display
+        # Don't modify the underlying images - this is the key change!
+        self.viewer.set_saved_crop_rect(saved_rect)
+
+        # Update all channel previews
+        for i in range(3):
+            update_channel_preview(self, i)
+
+        # Reset crop mode and UI
         self.crop_mode = False
         self.crop_mode_btn.setVisible(True)
         self.crop_controls_widget.setVisible(False)
         self.viewer.set_crop_mode(False)
-        update_main_display(self)
 
-    def keyPressEvent(self, event):
+        # Force a full display update
+        if self.show_combined:
+            show_combined_image(self)
+        else:
+            show_single_channel_image(self)
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # pylint: disable=C0103
         """
         Handle key press events for channel switching and display mode.
 
@@ -340,15 +418,15 @@ class MainWindow(QMainWindow):
             - apply_crop
         """
         if self.crop_mode:
-            if event.key() == Qt.Key_Escape:
+            if event.key() == Qt.Key.Key_Escape:
                 self.cancel_crop()
-            elif event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            elif event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
                 self.apply_crop()
             # Do not allow toggling crop mode with 'C' while in crop mode
             else:
                 super().keyPressEvent(event)
         else:
-            if event.key() == Qt.Key_C:
+            if event.key() == Qt.Key.Key_C:
                 self.toggle_crop_mode()
             elif not handle_key_press(self, event):
                 super().keyPressEvent(event)

@@ -1,0 +1,25 @@
+name: Documentation Coverage
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  doc-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install interrogate
+        run: pip install interrogate
+      - name: Check docstring coverage
+        run: interrogate --ignore-init-method --fail-under=100 -vv .

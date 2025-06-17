@@ -1,18 +1,17 @@
 """
-Image processing utilities for channel adjustment and combination.
-
-This module provides functions for brightness/contrast adjustment, channel combination, and conversion to QImage for display in PyQt5 GUIs.
-
-Cross-references:
-    - handlers.channels: Uses apply_adjustments and combine_channels.
-    - handlers.display: Uses combine_channels and convert_to_qimage.
+Image processing utilities for channel adjustment, combination, and conversion for display.
+Includes brightness/contrast adjustment, channel combination, and conversion to QImage.
 """
 
-import cv2
+from typing import List, Union
+
 import numpy as np
 from PyQt5.QtGui import QImage
 
-def apply_adjustments(image, brightness=0, contrast=0):
+
+def apply_adjustments(
+    image: Union[np.ndarray, None], brightness: int = 0, contrast: int = 0
+) -> Union[np.ndarray, None]:
     """
     Applies brightness and contrast adjustments to a grayscale image.
 
@@ -32,12 +31,13 @@ def apply_adjustments(image, brightness=0, contrast=0):
     """
     if image is None:
         return None
-    
+
     img = image.astype(np.float32)
-    img = img * (1 + contrast/100) + brightness
+    img = img * (1 + contrast / 100) + brightness
     return np.clip(img, 0, 255).astype(np.uint8)
 
-def combine_channels(channels, intensities):
+
+def combine_channels(channels: List[Union[np.ndarray, None]], intensities: List[int]) -> Union[np.ndarray, None]:
     """
     Combines three grayscale channels into RGB image with intensity adjustments.
 
@@ -46,26 +46,34 @@ def combine_channels(channels, intensities):
         intensities (list of int): [R%, G%, B%] intensity multipliers (0-200%).
 
     Returns:
-        numpy.ndarray or None: Combined 8-bit RGB image (uint8, shape: HxWx3) or None if any channel missing.
+        numpy.ndarray | None: Combined 8-bit RGB image (uint8, shape: HxWx3)
+                    or None if any channel missing
 
     Cross-references:
         - handlers.display.show_combined_image
     """
     if any(channel is None for channel in channels):
         return None
-    
-    combined = np.zeros((*channels[0].shape, 3), dtype=np.float32)
+
+    # Assert to help type checker understand all channels are now definitely not None
+    assert all(channel is not None for channel in channels)
+
+    # Create a new variable with a definite non-None type
+    valid_channels: List[np.ndarray] = [c for c in channels if c is not None]
+
+    combined = np.zeros((*valid_channels[0].shape, 3), dtype=np.float32)
     for i in range(3):
-        combined[:, :, i] = channels[i].astype(np.float32) * (intensities[i]/100)
-    
+        combined[:, :, i] = valid_channels[i].astype(np.float32) * (intensities[i] / 100)
+
     return np.clip(combined, 0, 255).astype(np.uint8)
 
-def convert_to_qimage(image):
+
+def convert_to_qimage(image: Union[np.ndarray, None]) -> QImage:
     """
     Converts numpy image to QImage for PyQt5 display.
 
     Args:
-        image (numpy.ndarray or None): 
+        image (numpy.ndarray | None):
             - Grayscale: HxW (uint8)
             - RGB: HxWx3 (uint8)
 
@@ -78,10 +86,8 @@ def convert_to_qimage(image):
     """
     if image is None:
         return QImage()
-    
+
     if len(image.shape) == 2:  # Grayscale
-        return QImage(image.data, image.shape[1], image.shape[0], 
-                     image.strides[0], QImage.Format_Grayscale8)
-    else:  # RGB
-        return QImage(image.data, image.shape[1], image.shape[0],
-                     image.strides[0], QImage.Format_RGB888)
+        return QImage(image.data, image.shape[1], image.shape[0], image.strides[0], QImage.Format_Grayscale8)
+
+    return QImage(image.data, image.shape[1], image.shape[0], image.strides[0], QImage.Format_RGB888)
