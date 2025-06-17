@@ -17,4 +17,23 @@ venv.bak/
 *.sublime-workspace
 *.sublime-project
 
+# Input files
+input/
+source_images/
+images/
+raw_files/
 *.ARW
+
+# Output image files
+*.jpg
+*.jpeg
+*.png
+*.tif
+*.tiff
+*.gif
+*.bmp
+*.webp
+*.heic
+*.raw
+output/
+processed_images/
