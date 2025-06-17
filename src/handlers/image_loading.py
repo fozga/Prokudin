@@ -14,26 +14,27 @@ from PyQt5.QtWidgets import QFileDialog, QWidget
 def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
     """
     Opens a file dialog for the user to select a Sony ARW RAW image,
-    loads the image using rawpy, processes it to an 8-bit RGB image,
-    and converts it to grayscale for further processing.
+    loads the image using rawpy, and processes it to an 8-bit RGB image.
 
     Args:
         parent (QWidget): The parent widget for the QFileDialog (typically the main window).
 
     Returns:
-        numpy.ndarray or None: 2D grayscale image as a NumPy array (dtype=uint8),
+        numpy.ndarray or None: 3D RGB image as a NumPy array (dtype=uint8, shape: HxWx3),
         or None if loading fails or is cancelled.
 
     Workflow:
         1. Opens a QFileDialog for ARW file selection.
         2. Loads the selected file with rawpy and applies camera white balance.
         3. Disables automatic brightness correction, outputs 8 bits per sample.
-        4. Converts the resulting RGB image to grayscale using OpenCV.
+        4. Returns the RGB image directly for further processing.
         5. Handles errors gracefully, printing a message and returning None if needed.
 
     Example:
-        gray_image = load_raw_image(self)
-        if gray_image is not None:
+        rgb_image = load_raw_image(self)
+        if rgb_image is not None:
+            # Convert to grayscale if needed
+            gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
             # Proceed with processing
 
     Cross-references:
@@ -48,8 +49,8 @@ def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
     try:
         with rawpy.imread(filename) as raw:
             rgb = raw.postprocess(use_camera_wb=True, no_auto_bright=True, output_bps=8)
-        # Add explicit type annotation to the return value
-        result: np.ndarray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
+        # Return the RGB image directly without converting to grayscale
+        result: np.ndarray = rgb
         return result
     except (
         rawpy.LibRawFileUnsupportedError,  # pylint: disable=E1101

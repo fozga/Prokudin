@@ -51,6 +51,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.original_images = [None, None, None]
         self.aligned = [None, None, None]
         self.processed = [None, None, None]
+        # Add original RGB images storage
+        self.original_rgb_images = [None, None, None]
+        self.aligned_rgb = [None, None, None]
+        
         # Display state
         self.show_combined = True  # If True, show combined RGB; else show single channel
         self.current_channel = 0  # Index of the currently selected channel

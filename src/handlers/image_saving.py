@@ -58,16 +58,16 @@ def _extract_extension_from_filter(filter_str: str) -> Optional[str]:
 
 
 def save_image_with_dialog(
-    main_window,  # MainWindow instance
+    main_window  # MainWindow instance
 ) -> Tuple[bool, str]:
     """
-    Open a file dialog to get a base filepath and then save all channel images and combined image.
+    Open a file dialog to get a filepath and save combined image plus individual channel images.
     
-    Saves images from main_window.aligned with appropriate suffixes:
+    Saves:
+    - base_name.ext for combined RGB image
     - base_name_r.ext for red channel
     - base_name_g.ext for green channel
     - base_name_b.ext for blue channel
-    - base_name.ext for combined RGB image
     
     Args:
         main_window: MainWindow instance containing aligned and processed images
@@ -81,7 +81,10 @@ def save_image_with_dialog(
     if not any(img is not None for img in main_window.aligned):
         return False, "No images to save"
         
-    file_filters = "Images (*.png *.jpg *.jpeg *.tif *.tiff);;PNG (*.png);;JPEG (*.jpg *.jpeg);;TIFF (*.tif *.tiff);;All Files (*)"
+    # Create file format options as separate entries
+    file_filters = "JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;All Files (*)"
+    
+    # Open save file dialog
     filepath, selected_filter = QFileDialog.getSaveFileName(
         main_window, "Save Images", "", file_filters
     )
@@ -107,31 +110,17 @@ def save_image_with_dialog(
     # Get crop rectangle if available
     crop_rect = main_window.viewer.get_saved_crop_rect() if main_window.viewer else None
     
-    # List to store results
+    # Track success/failure
     results = []
     success_count = 0
-    channel_names = ['r', 'g', 'b']
+    channel_names = ['ir', 'vis', 'uv']
     
-    # Save individual channel images with suffixes
-    for idx, img in enumerate(main_window.aligned):
-        if img is not None:
-            # Apply crop if needed
-            if crop_rect and crop_rect.isValid():
-                img_to_save = apply_crop(img, crop_rect)
-            else:
-                img_to_save = img
-                
-            # Create filename with channel suffix
-            channel_path = f"{base_path}_{channel_names[idx]}{extension}"
-            success, message = save_image(img_to_save, channel_path, file_format)
-            results.append((success, message))
-            if success:
-                success_count += 1
-    
-    # Create and save combined RGB image if at least one channel is available
+    # Create combined image from cropped grayscale images
     available_channels = [img is not None for img in main_window.aligned]
+    combined = None
+    
     if any(available_channels):
-        # Initialize empty channels (all zeros)
+        # Initialize empty channels
         img_shape = None
         for img in main_window.aligned:
             if img is not None:
@@ -143,32 +132,41 @@ def save_image_with_dialog(
             g_channel = np.zeros(img_shape, dtype=np.uint8)
             b_channel = np.zeros(img_shape, dtype=np.uint8)
             
-            # Fill in available channels
+            # Fill in available channels with cropped versions
             if main_window.aligned[0] is not None:  # Red
-                if crop_rect and crop_rect.isValid():
-                    r_channel = apply_crop(main_window.aligned[0], crop_rect)
-                else:
-                    r_channel = main_window.aligned[0]
+                r_channel = apply_crop(main_window.aligned[0], crop_rect) if crop_rect and crop_rect.isValid() else main_window.aligned[0]
                     
             if main_window.aligned[1] is not None:  # Green
-                if crop_rect and crop_rect.isValid():
-                    g_channel = apply_crop(main_window.aligned[1], crop_rect)
-                else:
-                    g_channel = main_window.aligned[1]
+                g_channel = apply_crop(main_window.aligned[1], crop_rect) if crop_rect and crop_rect.isValid() else main_window.aligned[1]
                     
             if main_window.aligned[2] is not None:  # Blue
-                if crop_rect and crop_rect.isValid():
-                    b_channel = apply_crop(main_window.aligned[2], crop_rect)
-                else:
-                    b_channel = main_window.aligned[2]
+                b_channel = apply_crop(main_window.aligned[2], crop_rect) if crop_rect and crop_rect.isValid() else main_window.aligned[2]
             
             # Combine RGB channels
             combined = cv2.merge([b_channel, g_channel, r_channel])  # BGR for OpenCV
             
-            success, message = save_image(combined, filepath, file_format)
+            # Save the combined image
+            success, message = save_image(combined, filepath, file_format, is_bgr=False)
             results.append((success, message))
             if success:
                 success_count += 1
+    
+    # Save individual RGB channel images if available
+    if hasattr(main_window, "aligned_rgb"):
+        for idx, img in enumerate(main_window.aligned_rgb):
+            if img is not None:
+                # Apply crop if needed
+                if crop_rect and crop_rect.isValid():
+                    img_cropped = apply_crop(img, crop_rect)
+                else:
+                    img_cropped = img.copy()
+                                
+                # Create filename with channel suffix
+                channel_path = f"{base_path}_{channel_names[idx]}{extension}"
+                success, message = save_image(img_cropped, channel_path, file_format, is_bgr=True)
+                results.append((success, message))
+                if success:
+                    success_count += 1
     
     # Create a summary message
     if success_count == 0:
@@ -182,7 +180,8 @@ def save_image_with_dialog(
 def save_image(
     image: np.ndarray,
     filepath: Optional[str] = None,
-    file_format: Optional[str] = None
+    file_format: Optional[str] = None,
+    is_bgr: bool = False
 ) -> Tuple[bool, str]:
     """
     Save a NumPy array image to a file.
@@ -191,6 +190,7 @@ def save_image(
         image: NumPy array containing the image data to save
         filepath: Path to save the file to. Required.
         file_format: Optional format override (e.g., 'jpg', 'png', 'tiff')
+        is_rgb: Whether the input image is in RGB format (needs conversion to BGR)
 
     Returns:
         Tuple containing:
@@ -212,6 +212,10 @@ def save_image(
         file_format = extension[1:].lower()  # Remove the dot and convert to lowercase
 
     try:
+        # Convert from RGB to BGR if needed (OpenCV uses BGR)
+        if is_bgr and len(image.shape) == 3 and image.shape[2] == 3:
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            
         # Handle image format based on extension
         if file_format in ['jpg', 'jpeg']:
             success = cv2.imwrite(filepath, image, [cv2.IMWRITE_JPEG_QUALITY, 95])

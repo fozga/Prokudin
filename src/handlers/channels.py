@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 
 # Third-party imports
+import cv2
 import numpy as np
 
 # Conditional imports for type checking
@@ -41,8 +42,23 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:
         - update_channel_preview
         - update_main_display
     """
-    image = load_raw_image(main_window)
-    if image is not None:
+    # Load the RGB image
+    rgb_image = load_raw_image(main_window)
+
+    if rgb_image is not None:
+        # Store the RGB image in main_window
+        if not hasattr(main_window, 'original_rgb_images'):
+            # Initialize as a list of None values if it doesn't exist
+            main_window.original_rgb_images = [None, None, None]
+
+        # Create a new list to avoid assignment issues
+        original_rgb_images: List[np.ndarray | None] = list(main_window.original_rgb_images)
+        original_rgb_images[channel_idx] = rgb_image
+        main_window.original_rgb_images = original_rgb_images  # type: ignore
+        
+        # Convert RGB to grayscale
+        image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)  # pylint: disable=E1101
+        
         # Create new lists with proper type annotations to avoid assignment issues
         original_images: List[np.ndarray | None] = list(main_window.original_images)
         processed: List[np.ndarray | None] = list(main_window.processed)
@@ -55,12 +71,18 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:
         main_window.processed = processed  # type: ignore
 
         if all(img is not None for img in main_window.original_images):
-            aligned = align_images(main_window.original_images)
-            main_window.aligned = aligned  # type: ignore
+            # Align both grayscale and RGB images
+            aligned_gray, aligned_rgb = align_images(main_window.original_images, main_window.original_rgb_images)
+            
+            # Store aligned grayscale images
+            main_window.aligned = aligned_gray  # type: ignore
+            
+            # Store aligned RGB images
+            main_window.aligned_rgb = aligned_rgb  # type: ignore
 
             # Create new list with copies of aligned images, handling None values
             new_processed: List[np.ndarray | None] = []
-            for img in aligned:
+            for img in aligned_gray:
                 if img is not None:
                     new_processed.append(img.copy())
                 else:
