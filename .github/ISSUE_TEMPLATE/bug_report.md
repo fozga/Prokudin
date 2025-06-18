@@ -21,9 +21,9 @@ What did you expect to happen?
 If applicable, add screenshots or paste error messages.
 
 **Environment (please complete the following information):**
-- OS:
-- Python version:
-- Project version:
+- OS: [e.g. Ubuntu 22.04]
+- Python: [e.g. 3.9.12]
+- Libraries: [e.g. Pillow 9.4.0]
 
 **Additional context**
 Add any other context about the problem here.
