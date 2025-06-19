@@ -220,7 +220,9 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
                     -------
                     None
                     """
-                    self.status_handler.set_message(f"Viewing {ctrl.channel_name.capitalize()} channel", 3000)
+                    self.status_handler.set_message(
+                        f"Viewing {ctrl.channel_name.capitalize()} channel", self.status_handler.MEDIUM_TIMEOUT
+                    )
                     show_single_channel(self, index)
                     # Call the original method to maintain expected behavior
                     QLabel.mousePressEvent(ctrl.preview_label, event)
@@ -302,7 +304,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Update mode indicator and status message
         self._update_mode_from_state()
-        self.status_handler.set_message("Crop mode activated - Select region to crop")
+        self.status_handler.set_message("Crop mode activated - Select region to crop", self.status_handler.NO_TIMEOUT)
 
     def cancel_crop(self) -> None:
         """
@@ -335,7 +337,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Update mode indicator and status message
         self._update_mode_from_state()
-        self.status_handler.set_message("Crop operation cancelled")
+        self.status_handler.set_message("Crop operation cancelled", self.status_handler.MEDIUM_TIMEOUT)
 
     def set_crop_ratio(self) -> None:
         """
@@ -466,7 +468,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Update mode indicator and status message
         self._update_mode_from_state()
-        self.status_handler.set_message("Crop applied successfully")
+        self.status_handler.set_message("Crop applied successfully", self.status_handler.MEDIUM_TIMEOUT)
 
         # Force a full display update
         if self.show_combined:

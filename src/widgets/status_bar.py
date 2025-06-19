@@ -17,6 +17,12 @@ class StatusBarHandler(QObject):
     parts of the application to communicate status to the user.
     """
 
+    # Standard timeout values (milliseconds)
+    SHORT_TIMEOUT = 2000  # 2 seconds - for brief notifications
+    MEDIUM_TIMEOUT = 3000  # 3 seconds - for standard messages
+    LONG_TIMEOUT = 5000  # 5 seconds - for important messages
+    NO_TIMEOUT = 0  # 0 - messages remain until replaced
+
     def __init__(self, status_bar: QStatusBar) -> None:
         """
         Initialize the status bar handler.
@@ -36,14 +42,14 @@ class StatusBarHandler(QObject):
         # Set initial message
         self.set_message("Ready - Load channel images to begin processing")
 
-    def set_message(self, message: str, timeout: int = 0) -> None:
+    def set_message(self, message: str, timeout: int = NO_TIMEOUT) -> None:
         """
         Update the status bar with a new message.
 
         Args:
             message (str): The message to display in the status bar.
             timeout (int): Duration in milliseconds to display the message.
-                           Default is 0, which means the message remains
+                           Default is NO_TIMEOUT, which means the message remains
                            until replaced.
         """
         self.status_bar.showMessage(message, timeout)

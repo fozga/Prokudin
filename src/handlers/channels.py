@@ -87,7 +87,9 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
         main_window.processed = processed  # type: ignore
 
         # Display status message showing which channel was loaded
-        main_window.status_handler.set_message(f"Successfully loaded image into {channel_name} channel", 3000)
+        main_window.status_handler.set_message(
+            f"Successfully loaded image into {channel_name} channel", main_window.status_handler.MEDIUM_TIMEOUT
+        )
 
         if all(img is not None for img in main_window.original_images):
             # Create arrays of ndarray images only, with explicit type casting for mypy
@@ -124,7 +126,9 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
                 for i in range(3):
                     adjust_channel(main_window, i)
                     update_channel_preview(main_window, i)
-                main_window.status_handler.set_message("All channels loaded successfully - Ready for editing!", 3000)
+                main_window.status_handler.set_message(
+                    "All channels loaded successfully - Ready for editing!", main_window.status_handler.NO_TIMEOUT
+                )
         else:
             update_channel_preview(main_window, channel_idx)
         update_main_display(main_window)
@@ -135,7 +139,7 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
         # Display error message if loading failed
         if err_msg is None:
             err_msg = "Failed to load image. Please try again."
-        main_window.status_handler.set_message(err_msg, 5000)
+        main_window.status_handler.set_message(err_msg, main_window.status_handler.LONG_TIMEOUT)
 
 
 def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
@@ -167,7 +171,7 @@ def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
 
             update_channel_preview(main_window, channel_idx)
             update_main_display(main_window)
-        main_window.status_handler.set_message("")
+        main_window.status_handler.set_message("")  # No timeout needed for clearing message
 
 
 def update_channel_preview(main_window: "MainWindow", channel_idx: int) -> None:
