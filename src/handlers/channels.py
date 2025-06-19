@@ -64,7 +64,7 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
     channel_name = channel_names.get(channel_idx, "Unknown")
 
     # Load the RGB image
-    rgb_image = load_raw_image(main_window)
+    rgb_image, err_msg = load_raw_image(main_window)
 
     if rgb_image is not None:
         # Create a new list to avoid assignment issues
@@ -133,7 +133,9 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
         main_window.update_save_button_state()
     else:
         # Display error message if loading failed
-        main_window.status_handler.set_message(f"Failed to load image for {channel_name} channel", 3000)
+        if err_msg is None:
+            err_msg = "Failed to load image. Please try again."
+        main_window.status_handler.set_message(err_msg, 5000)
 
 
 def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
@@ -165,7 +167,7 @@ def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
 
             update_channel_preview(main_window, channel_idx)
             update_main_display(main_window)
-            main_window.statusBar().clearMessage()
+        main_window.status_handler.set_message("")
 
 
 def update_channel_preview(main_window: "MainWindow", channel_idx: int) -> None:

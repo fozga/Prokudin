@@ -27,7 +27,7 @@ import rawpy  # type: ignore
 from PyQt5.QtWidgets import QFileDialog, QWidget
 
 
-def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
+def load_raw_image(parent: QWidget) -> Union[tuple[np.ndarray, None], tuple[None, str]]:
     """
     Opens a file dialog for the user to select a Sony ARW RAW image,
     loads the image using rawpy, and processes it to an 8-bit RGB image.
@@ -36,19 +36,22 @@ def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
         parent (QWidget): The parent widget for the QFileDialog (typically the main window).
 
     Returns:
-        numpy.ndarray or None: 3D RGB image as a NumPy array (dtype=uint8, shape: HxWx3),
-        or None if loading fails or is cancelled.
+        tuple: Either (numpy.ndarray, None) with the 3D RGB image as a NumPy array
+        (dtype=uint8, shape: HxWx3) and no error, or (None, str) with an error message
+        if loading fails or is cancelled.
 
     Workflow:
         1. Opens a QFileDialog for ARW file selection.
         2. Loads the selected file with rawpy and applies camera white balance.
         3. Disables automatic brightness correction, outputs 8 bits per sample.
         4. Returns the RGB image directly for further processing.
-        5. Handles errors gracefully, printing a message and returning None if needed.
+        5. Handles errors gracefully, returning None and an error message.
 
     Example:
-        rgb_image = load_raw_image(self)
-        if rgb_image is not None:
+        rgb_image, error = load_raw_image(self)
+        if error:
+            print(error)
+        elif rgb_image is not None:
             # Convert to grayscale if needed
             gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
             # Proceed with processing
@@ -60,19 +63,19 @@ def load_raw_image(parent: QWidget) -> Union[np.ndarray, None]:
     filename, _ = QFileDialog.getOpenFileName(parent, "Select ARW File", "", "Sony RAW Files (*.arw)", options=options)
 
     if not filename:
-        return None
+        return None, "No file selected"
 
     try:
         with rawpy.imread(filename) as raw:
             rgb = raw.postprocess(use_camera_wb=True, no_auto_bright=True, output_bps=8)
         # Return the RGB image directly without converting to grayscale
         result: np.ndarray = rgb
-        return result
+        return result, None
     except (
         rawpy.LibRawFileUnsupportedError,  # pylint: disable=E1101
         rawpy.LibRawIOError,  # pylint: disable=E1101
         FileNotFoundError,
         PermissionError,
     ) as e:  # pylint: disable=E1101
-        print(f"Error loading ARW file: {e}")
-        return None
+        error_message = f"Error loading ARW file: {e}"
+        return None, error_message
