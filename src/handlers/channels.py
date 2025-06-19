@@ -59,8 +59,12 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
         - update_channel_preview
         - update_main_display
     """
+    # Channel names for status messages
+    channel_names = {0: "Red", 1: "Green", 2: "Blue"}
+    channel_name = channel_names.get(channel_idx, "Unknown")
+
     # Load the RGB image
-    rgb_image = load_raw_image(main_window)
+    rgb_image, err_msg = load_raw_image(main_window)
 
     if rgb_image is not None:
         # Create a new list to avoid assignment issues
@@ -82,6 +86,11 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
         main_window.original_images = original_images  # type: ignore
         main_window.processed = processed  # type: ignore
 
+        # Display status message showing which channel was loaded
+        main_window.status_handler.set_message(
+            f"Successfully loaded image into {channel_name} channel", main_window.status_handler.MEDIUM_TIMEOUT
+        )
+
         if all(img is not None for img in main_window.original_images):
             # Create arrays of ndarray images only, with explicit type casting for mypy
             gray_images: List[np.ndarray] = []
@@ -98,6 +107,7 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
             # Ensure we have exactly 3 images for each channel
             if len(gray_images) == 3 and len(rgb_images) == 3:
                 # Align both grayscale and RGB images
+                main_window.status_handler.set_message("Aligning images, please wait...")
                 aligned_gray, aligned_rgb = align_images(gray_images, rgb_images)
 
                 # Store aligned grayscale images
@@ -116,12 +126,20 @@ def load_channel(main_window: "MainWindow", channel_idx: int) -> None:  # pylint
                 for i in range(3):
                     adjust_channel(main_window, i)
                     update_channel_preview(main_window, i)
+                main_window.status_handler.set_message(
+                    "All channels loaded successfully - Ready for editing!", main_window.status_handler.NO_TIMEOUT
+                )
         else:
             update_channel_preview(main_window, channel_idx)
         update_main_display(main_window)
 
         # After successfully loading a channel, update save button state
         main_window.update_save_button_state()
+    else:
+        # Display error message if loading failed
+        if err_msg is None:
+            err_msg = "Failed to load image. Please try again."
+        main_window.status_handler.set_message(err_msg, main_window.status_handler.LONG_TIMEOUT)
 
 
 def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
@@ -141,6 +159,7 @@ def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
         - update_main_display
     """
     if main_window.aligned[channel_idx] is not None:
+        main_window.status_handler.set_message("Processing image, please wait...")
         brightness: int = main_window.controllers[channel_idx].sliders["brightness"].value()
         contrast: int = main_window.controllers[channel_idx].sliders["contrast"].value()
         result = apply_adjustments(main_window.aligned[channel_idx], brightness, contrast)
@@ -152,6 +171,7 @@ def adjust_channel(main_window: "MainWindow", channel_idx: int) -> None:
 
             update_channel_preview(main_window, channel_idx)
             update_main_display(main_window)
+        main_window.status_handler.set_message("")  # No timeout needed for clearing message
 
 
 def update_channel_preview(main_window: "MainWindow", channel_idx: int) -> None:

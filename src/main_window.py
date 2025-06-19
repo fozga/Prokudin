@@ -24,7 +24,7 @@ from typing import Callable, Union
 
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QKeyEvent, QMouseEvent
-from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QStatusBar, QVBoxLayout, QWidget
 
 from .handlers.channels import adjust_channel, load_channel, show_single_channel, update_channel_preview
 from .handlers.display import show_combined_image, show_single_channel_image, update_main_display
@@ -32,21 +32,23 @@ from .handlers.image_saving import save_image_with_dialog
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
 from .widgets.image_viewer import ImageViewer
+from .widgets.status_bar import StatusBarHandler
 
 
 class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
     """
-    Main application window for the RGB Channel Processor.
+        Main application window for the RGB Channel Processor.
 
-    This window manages the overall GUI layout, holds the state of loaded and processed images,
-    and connects user interactions (buttons, sliders, keyboard) to the processing logic.
+        This window manages the overall GUI layout, holds the state of loaded and processed images,
+        and connects user interactions (buttons, sliders, keyboard) to the processing logic.
 
-    Related components:
-        - ImageViewer (widgets.image_viewer): Displays the main image.
-        - ChannelController (widgets.channel_controller): Controls for each RGB channel.
-        - handlers.channels: Functions for loading and adjusting channels.
-        - handlers.display: Functions for updating the main display.
-        - handlers.keyboard: Keyboard shortcut handling.
+        Related components:
+            - ImageViewer (widgets.image_viewer): Displays the main image.
+            - ChannelController (widgets.channel_controller): Controls for each RGB channel.
+    - StatusBarHandler (widgets.status_bar): Manages the status bar.
+            - handlers.channels: Functions for loading and adjusting channels.
+            - handlers.display: Functions for updating the main display.
+            - handlers.keyboard: Keyboard shortcut handling.
     """
 
     def __init__(self) -> None:
@@ -83,6 +85,9 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         self.init_ui()
 
+        # Update the mode based on initial state
+        self._update_mode_from_state()
+
     def init_ui(self) -> None:  # pylint: disable=too-many-statements
         """
         Build the main UI layout: image viewer and channel controllers.
@@ -104,6 +109,11 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         """
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
+
+        # Add status bar
+        status_bar = QStatusBar()
+        self.setStatusBar(status_bar)
+        self.status_handler = StatusBarHandler(status_bar)
 
         # Add save button
         self.save_btn = QPushButton("Save")
@@ -210,6 +220,9 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
                     -------
                     None
                     """
+                    self.status_handler.set_message(
+                        f"Viewing {ctrl.channel_name.capitalize()} channel", self.status_handler.MEDIUM_TIMEOUT
+                    )
                     show_single_channel(self, index)
                     # Call the original method to maintain expected behavior
                     QLabel.mousePressEvent(ctrl.preview_label, event)
@@ -228,6 +241,19 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # After connecting all signals for loading/adjusting channels, update save button state
         self.update_save_button_state()
+
+    def _update_mode_from_state(self) -> None:
+        """
+        Updates the mode indicator based on the current application state.
+
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
+        """
+        loaded_channels = sum(1 for img in self.original_images if img is not None)
+        self.status_handler.update_mode_from_state(loaded_channels, self.crop_mode)
 
     def toggle_crop_mode(self) -> None:
         """
@@ -276,6 +302,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             self.viewer.set_crop_rect(self.crop_rect)
         update_main_display(self)
 
+        # Update mode indicator and status message
+        self._update_mode_from_state()
+        self.status_handler.set_message("Crop mode activated - Select region to crop", self.status_handler.NO_TIMEOUT)
+
     def cancel_crop(self) -> None:
         """
         Cancels the current crop operation.
@@ -304,6 +334,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             self.crop_rect = None
         self.viewer.set_crop_mode(False)
         update_main_display(self)
+
+        # Update mode indicator and status message
+        self._update_mode_from_state()
+        self.status_handler.set_message("Crop operation cancelled", self.status_handler.MEDIUM_TIMEOUT)
 
     def set_crop_ratio(self) -> None:
         """
@@ -432,6 +466,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         # Update save button state after crop
         self.update_save_button_state()
 
+        # Update mode indicator and status message
+        self._update_mode_from_state()
+        self.status_handler.set_message("Crop applied successfully", self.status_handler.MEDIUM_TIMEOUT)
+
         # Force a full display update
         if self.show_combined:
             show_combined_image(self)
@@ -448,9 +486,18 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         Returns:
             None
         """
-        save_image_with_dialog(self)
-        # Here you could add code to display the message to the user
-        # For example, via a status bar or message box
+        # Set mode to Saving before starting operation
+        self.status_handler.update_mode_from_state(3, False, True)
+
+        success, msg = save_image_with_dialog(self)
+
+        # Restore appropriate mode after saving
+        self._update_mode_from_state()
+
+        if success:
+            self.status_handler.set_message("Image saved successfully")
+        else:
+            self.status_handler.set_message(msg)
 
     def update_save_button_state(self) -> None:
         """
@@ -465,6 +512,9 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         # Enable save button if at least one channel image is available
         has_images = any(img is not None for img in self.aligned)
         self.save_btn.setEnabled(has_images)
+
+        # Update mode indicator based on loaded channels
+        self._update_mode_from_state()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # pylint: disable=C0103
         """
