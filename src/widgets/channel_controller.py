@@ -36,6 +36,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QSlider,
     QVBoxLayout,
     QWidget,
 )
@@ -44,7 +45,7 @@ from PyQt5.QtWidgets import (
 from .sliders import ResetSlider
 
 
-class ChannelController(QGroupBox):
+class ChannelController(QGroupBox):  # pylint: disable=too-many-instance-attributes
     """
     Widget for controlling a single RGB channel.
 
@@ -165,9 +166,7 @@ class ChannelController(QGroupBox):
             )
 
             # Connect double-click reset functionality
-            slider.doubleClicked.connect(
-                lambda name=name: self._reset_slider_to_default(name)
-            )
+            slider.doubleClicked.connect(lambda name=name: self._reset_slider_to_default(name))
 
             row += 1
 
@@ -233,16 +232,16 @@ class ChannelController(QGroupBox):
     def _reset_slider_to_default(self, name: str) -> None:
         """
         Reset slider and text input to default values when slider is double-clicked.
-        
+
         Args:
             name (str): Name of the slider to reset
         """
         if name in self.sliders and name in self.default_values:
             default_value = self.default_values[name]
-            
+
             # Update slider value (will also update text through valueChanged signal)
             self.sliders[name].setValue(default_value)
-            
+
             # Emit value changed signal to update processing
             self.value_changed.emit()
 
