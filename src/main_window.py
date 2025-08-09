@@ -181,9 +181,6 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             # Connect controller value changes to adjust channel (handles both slider and text input)
             controller.value_changed.connect(lambda i=idx: adjust_channel(self, i))
 
-            # Connect intensity directly to display update
-            controller.sliders["intensity"].valueChanged.connect(lambda _: update_main_display(self))
-
             # Fix the mousePressEvent assignment with properly typed functions
             # Pass controller as an argument to avoid cell-var-from-loop issue
             def create_click_handler(index: int, ctrl: ChannelController = controller) -> Callable[[QMouseEvent], None]:

@@ -41,8 +41,11 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+# Import the ResetSlider class
+from .sliders import ResetSlider
 
-class ChannelController(QGroupBox):
+
+class ChannelController(QGroupBox):  # pylint: disable=too-many-instance-attributes
     """
     Widget for controlling a single RGB channel.
 
@@ -107,6 +110,7 @@ class ChannelController(QGroupBox):
         # Create sliders and their text input fields
         self.sliders = {}
         self.text_inputs = {}
+        self.default_values = {}  # Store default values for reset functionality
 
         # Define slider parameters
         slider_configs: dict[str, dict[str, Union[int, str]]] = {
@@ -118,7 +122,6 @@ class ChannelController(QGroupBox):
         # Create a grid layout for the adjustment controls
         adjustments_layout = QGridLayout()
         adjustments_layout.setColumnStretch(1, 2)  # Make the slider column expandable
-        # adjustments_layout.setColumnMinimumWidth(1, 100)  # Reduced width for sliders
         adjustments_layout.setHorizontalSpacing(5)  # Add horizontal spacing between elements
         adjustments_layout.setVerticalSpacing(5)  # Add some vertical spacing
 
@@ -130,8 +133,7 @@ class ChannelController(QGroupBox):
             label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             adjustments_layout.addWidget(label, row, 0)
 
-            # Create slider
-            slider = QSlider(Qt.Horizontal)
+            slider = ResetSlider(Qt.Horizontal)
 
             # Ensure numeric values are used for slider operations
             assert isinstance(config["min"], int)
@@ -142,6 +144,7 @@ class ChannelController(QGroupBox):
             slider.setValue(config["default"])
             slider.setTracking(True)
             self.sliders[name] = slider
+            self.default_values[name] = config["default"]
             adjustments_layout.addWidget(slider, row, 1)
 
             # Create and set up text input field
@@ -161,6 +164,9 @@ class ChannelController(QGroupBox):
             text_input.editingFinished.connect(
                 lambda slider=slider, input_field=text_input: self._update_slider_from_text(slider, input_field)
             )
+
+            # Connect double-click reset functionality
+            slider.doubleClicked.connect(lambda name=name: self._reset_slider_to_default(name))
 
             row += 1
 
@@ -222,6 +228,22 @@ class ChannelController(QGroupBox):
         except ValueError:
             # If not a valid number, restore to current slider value
             text_input.setText(str(slider.value()))
+
+    def _reset_slider_to_default(self, name: str) -> None:
+        """
+        Reset slider and text input to default values when slider is double-clicked.
+
+        Args:
+            name (str): Name of the slider to reset
+        """
+        if name in self.sliders and name in self.default_values:
+            default_value = self.default_values[name]
+
+            # Update slider value (will also update text through valueChanged signal)
+            self.sliders[name].setValue(default_value)
+
+            # Emit value changed signal to update processing
+            self.value_changed.emit()
 
     def _create_placeholder_preview(self) -> None:
         """Create an empty placeholder preview."""
