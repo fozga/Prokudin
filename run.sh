@@ -14,9 +14,16 @@ create_directory_as_user() {
     fi
 }
 
+# Function to validate directory existence and permissions
+validate_directory() {
+    local dir="$1" type="$2"
+    [[ -d "$dir" ]] || { echo "ERROR: $type directory does not exist: $dir"; exit 1; }
+    [[ -r "$dir" ]] || { echo "ERROR: $type directory is not readable: $dir"; exit 1; }
+}
+
 # Set default directories
 DEFAULT_INPUT_DIR="$(pwd)/input"
-OUTPUT_DIR="$(pwd)/output"
+OUTPUT_DIR="$HOME/prokudin/output"
 
 # Validate and set input directory
 if [[ -n "$1" ]]; then
@@ -25,7 +32,7 @@ if [[ -n "$1" ]]; then
     
     # Convert to absolute path if relative path is provided
     if [[ ! "$TEMP_INPUT_DIR" = /* ]]; then
-        TEMP_INPUT_DIR="$(pwd)/$TEMP_INPUT_DIR"
+        TEMP_INPUT_DIR="$(pwd)/${TEMP_INPUT_DIR}"
     fi
     
     # Check if the provided path exists (do not create it)
@@ -55,25 +62,8 @@ if [[ ! -d "$OUTPUT_DIR" ]]; then
 fi
 
 # Final validation that directories are accessible
-if [[ ! -d "$INPUT_DIR" ]]; then
-    echo "ERROR: Failed to create or access input directory: $INPUT_DIR"
-    exit 1
-fi
-
-if [[ ! -r "$INPUT_DIR" ]]; then
-    echo "ERROR: Input directory is not readable: $INPUT_DIR"
-    exit 1
-fi
-
-if [[ ! -d "$OUTPUT_DIR" ]]; then
-    echo "ERROR: Failed to create output directory: $OUTPUT_DIR"
-    exit 1
-fi
-
-if [[ ! -w "$OUTPUT_DIR" ]]; then
-    echo "ERROR: Output directory is not writable: $OUTPUT_DIR"
-    exit 1
-fi
+validate_directory "$INPUT_DIR" "Input"
+validate_directory "$OUTPUT_DIR" "Output"
 
 echo "Using input directory: $INPUT_DIR"
 echo "Using output directory: $OUTPUT_DIR"

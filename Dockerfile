@@ -28,5 +28,8 @@ RUN mkdir -p /app/input /app/output && \
 # Add application to Python path so it can be imported
 ENV PYTHONPATH="/opt/app:$PYTHONPATH"
 
+# Test that the module can be imported before changing USER
+USER root
+RUN python3 -c "import src.main" || exit 1
 USER qtuser
 CMD ["python3", "-m", "src.main"]
