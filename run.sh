@@ -23,7 +23,12 @@ validate_directory() {
 
 # Set default directories
 DEFAULT_INPUT_DIR="$(pwd)/input"
-OUTPUT_DIR="$HOME/prokudin/output"
+if [[ -n "$SUDO_USER" ]]; then
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    USER_HOME="$HOME"
+fi
+OUTPUT_DIR="$USER_HOME/prokudin/output"
 
 # Validate and set input directory
 if [[ -n "$1" ]]; then
