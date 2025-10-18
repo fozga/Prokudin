@@ -24,7 +24,7 @@ validate_directory() {
 # Set default directories
 DEFAULT_INPUT_DIR="$(pwd)/input"
 if [[ -n "$SUDO_USER" ]]; then
-    USER_HOME=$(eval echo "~$SUDO_USER")
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 else
     USER_HOME="$HOME"
 fi
