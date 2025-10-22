@@ -1,3 +1,7 @@
+LABEL maintainer="fozga"
+LABEL description="Docker image for running a Python 3 + PyQt5 application on Ubuntu 22.04"
+LABEL license="MIT"
+
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive

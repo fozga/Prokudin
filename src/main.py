@@ -1,22 +1,22 @@
 # Copyright (C) 2025 fozga
 #
-# This file is part of FullSpectrumProcessor.
+# This file is part of Prokudin.
 #
-# FullSpectrumProcessor is free software: you can redistribute it and/or modify
+# Prokudin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# FullSpectrumProcessor is distributed in the hope that it will be useful,
+# Prokudin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with FullSpectrumProcessor.  If not, see <https://www.gnu.org/licenses/>.
+# along with Prokudin.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Main entry point for the RGB Channel Processor application.
+Main entry point for the Prokudin application.
 
 This script initializes the Qt application, creates the main window,
 and starts the event loop for the GUI.
@@ -39,7 +39,7 @@ from .main_window import MainWindow
 
 def main() -> None:
     """
-    Initialize and run the RGB Channel Processor application.
+    Initialize and run the Prokudin application.
 
     This function creates a QApplication instance, instantiates and displays the main window,
     and starts the Qt event loop. The application will exit when the main window is closed.

@@ -1,6 +1,6 @@
-# RGB Channel Processor
+# Prokudin
 
-**RGB Channel Processor** is a desktop application for advanced processing of RAW images from Sony cameras. The app allows you to load RAW files, split them into RGB channels, align and adjust each channel individually (brightness, contrast, intensity), and preview or export the combined result. The project is built with Python and PyQt5, and is designed to be modular, testable, and user-friendly.
+**Prokudin** is a desktop application for advanced processing of RAW images from Sony cameras. The app allows you to load RAW files, split them into RGB channels, align and adjust each channel individually (brightness, contrast, intensity), and preview or export the combined result. The project is built with Python and PyQt5, and is designed to be modular, testable, and user-friendly.
 
 ---
 
@@ -38,8 +38,8 @@ pip install -r requirements.txt
 
 1. **Clone the repository:**
     ```
-    git clone https://github.com/fozga/FullSpectrumProcessor.git
-    cd FullSpectrumProcessor
+    git clone https://github.com/fozga/prokudin.git
+    cd prokudin
     ```
 
 2. **Install dependencies:**

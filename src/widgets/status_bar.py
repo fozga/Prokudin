@@ -1,5 +1,5 @@
 """
-Status bar component for the RGB Channel Processor application.
+Status bar component for the Prokudin application.
 
 Handles displaying application mode and status messages to the user.
 """
