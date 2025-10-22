@@ -1,4 +1,4 @@
-# Contributing to FullSpectrumProcessor
+# Contributing to Prokudin
 
 Thank you for your interest in contributing! This project uses several automated checks to ensure code quality, consistency, and compliance. Please read the following guidelines before submitting a pull request.
 
@@ -65,7 +65,7 @@ interrogate --ignore-init-method --fail-under=100 .
 
 ```sh
 pip install pdoc
-pdoc --html --output-dir docs FullSpectrumProcessor
+pdoc --html --output-dir docs Prokudin
 ```
 
 ### 7. License Compliance

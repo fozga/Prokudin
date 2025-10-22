@@ -1,22 +1,22 @@
 # Copyright (C) 2025 fozga
 #
-# This file is part of FullSpectrumProcessor.
+# This file is part of Prokudin.
 #
-# FullSpectrumProcessor is free software: you can redistribute it and/or modify
+# Prokudin is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# FullSpectrumProcessor is distributed in the hope that it will be useful,
+# Prokudin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with FullSpectrumProcessor.  If not, see <https://www.gnu.org/licenses/>.
+# along with Prokudin.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Main application window and UI layout for the RGB Channel Processor.
+Main application window and UI layout for Prokudin.
 Handles state management, user interactions, and connects UI components to processing logic.
 """
 
@@ -37,7 +37,7 @@ from .widgets.status_bar import StatusBarHandler
 
 class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
     """
-        Main application window for the RGB Channel Processor.
+        Main application window for Prokudin.
 
         This window manages the overall GUI layout, holds the state of loaded and processed images,
         and connects user interactions (buttons, sliders, keyboard) to the processing logic.
@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             None
         """
         super().__init__()
-        self.setWindowTitle("RGB Channel Processor")
+        self.setWindowTitle("Prokudin")
         self.setGeometry(100, 100, 1200, 800)
 
         # State: original, aligned, and processed images for R, G, B channels
