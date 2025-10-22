@@ -79,14 +79,24 @@ xhost +local:docker &>/dev/null || {
     exit 1
 }
 
+# Get the script's directory (project root)
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -z "$SCRIPT_DIR" ]]; then
+    echo "ERROR: Failed to determine script directory."
+    exit 1
+fi
+
 # Run container with GUI support and mounted input/output folders
 # Input folder is mounted as read-only (:ro), output folder is read-write
+# Source code is mounted so changes are reflected without rebuilding
 docker run -it --rm \
     -e XDG_RUNTIME_DIR=/tmp/runtime-root \
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -v "$INPUT_DIR:/app/input:ro" \
     -v "$OUTPUT_DIR:/app/output" \
+    -v "$SCRIPT_DIR/src:/opt/app/src:ro" \
     pyqt-app python3 -m src.main
 
 # Reset X server access (optional security measure)
