@@ -534,15 +534,14 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.show_combined = DefaultState.SHOW_COMBINED
         self.current_channel = DefaultState.CURRENT_CHANNEL
 
-        # Reset crop state
+        # Reset crop state - exit crop mode if active
         if self.crop_mode:
-            # Exit crop mode if active
             self.crop_mode = False
             self.crop_mode_btn.setVisible(True)
             self.crop_controls_widget.setVisible(False)
             self.viewer.set_crop_mode(False)
 
-        self.crop_mode = DefaultState.CROP_MODE
+        # Clear crop geometry
         self.crop_rect = None
         self.crop_ratio = None
 
@@ -563,13 +562,8 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         if self.viewer:
             self.viewer.clear_image()
 
-        # Update UI state
+        # Update UI state (manages save and crop button states, and mode indicator)
         self.update_save_button_state()
-
-        # Disable crop button when no images are loaded
-        self.crop_mode_btn.setEnabled(False)
-
-        self._update_mode_from_state()
 
         # Show status message
         self.status_handler.set_message("Application reset to default state", self.status_handler.MEDIUM_TIMEOUT)
