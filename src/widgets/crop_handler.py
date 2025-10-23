@@ -143,16 +143,26 @@ class CropHandler:
         """Return the saved crop rectangle."""
         return self._rectangles["saved"]
 
-    def set_saved_crop_rect(self, rect: QRect) -> None:
-        """Set the saved crop rectangle."""
+    def set_saved_crop_rect(self, rect: Union[QRect, None]) -> None:
+        """
+        Set the saved crop rectangle.
+
+        Args:
+            rect: The crop rectangle to save, or None to clear it.
+        """
         self._rectangles["saved"] = rect
 
     def get_crop_rect(self) -> Union[QRect, None]:
         """Return the current crop rectangle."""
         return self._rectangles["current"]
 
-    def set_crop_rect(self, rect: QRect) -> None:
-        """Set the crop rectangle."""
+    def set_crop_rect(self, rect: Union[QRect, None]) -> None:
+        """
+        Set the crop rectangle.
+
+        Args:
+            rect: The crop rectangle to set, or None to clear it.
+        """
         self._rectangles["current"] = rect
         self.view.viewport().update()
 

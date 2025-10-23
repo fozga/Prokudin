@@ -26,6 +26,7 @@ from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QKeyEvent, QMouseEvent
 from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QStatusBar, QVBoxLayout, QWidget
 
+from .default_state import DefaultState
 from .handlers.channels import adjust_channel, load_channel, show_single_channel, update_channel_preview
 from .handlers.display import show_combined_image, show_single_channel_image, update_main_display
 from .handlers.image_saving import save_image_with_dialog
@@ -74,12 +75,12 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.original_rgb_images = [None, None, None]
         self.aligned_rgb = [None, None, None]
 
-        # Display state
-        self.show_combined = True  # If True, show combined RGB; else show single channel
-        self.current_channel = 0  # Index of the currently selected channel
+        # Display state - use defaults from DefaultState
+        self.show_combined = DefaultState.SHOW_COMBINED
+        self.current_channel = DefaultState.CURRENT_CHANNEL
 
-        # Crop-related state
-        self.crop_mode = False
+        # Crop-related state - use defaults from DefaultState
+        self.crop_mode = DefaultState.CROP_MODE
         self.crop_rect: Union[QRect, None] = None
         self.crop_ratio: Union[tuple[int, int], None] = None
 
@@ -120,6 +121,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.save_btn.clicked.connect(self.save_images)
         self.save_btn.setEnabled(False)  # Initially disabled
 
+        # Add New button to reset the application
+        self.new_btn = QPushButton("New")
+        self.new_btn.clicked.connect(self.reset_to_defaults)
+
         # Add crop mode button (QPushButton)
         self.crop_mode_btn = QPushButton("Crop")
         self.crop_mode_btn.clicked.connect(self.toggle_crop_mode)
@@ -155,6 +160,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Create a horizontal layout for the buttons
         buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.new_btn)
         buttons_layout.addWidget(self.save_btn)
         buttons_layout.addWidget(self.crop_mode_btn)
 
@@ -499,9 +505,72 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         else:
             self.status_handler.set_message(msg)
 
+    def reset_to_defaults(self) -> None:
+        """
+        Reset the entire application to its default state.
+
+        This method:
+        - Clears all loaded images (original, aligned, processed, RGB)
+        - Resets all channel sliders to default values
+        - Clears crop settings and exits crop mode
+        - Resets display mode to combined view
+        - Clears the main viewer
+        - Updates all UI elements to reflect the reset state
+
+        Args:
+            self (MainWindow): The instance of the main window.
+
+        Returns:
+            None
+        """
+        # Clear all image data
+        self.original_images = [None, None, None]
+        self.aligned = [None, None, None]
+        self.processed = [None, None, None]
+        self.original_rgb_images = [None, None, None]
+        self.aligned_rgb = [None, None, None]
+
+        # Reset display state to defaults
+        self.show_combined = DefaultState.SHOW_COMBINED
+        self.current_channel = DefaultState.CURRENT_CHANNEL
+
+        # Reset crop state - exit crop mode if active
+        if self.crop_mode:
+            self.crop_mode = False
+            self.crop_mode_btn.setVisible(True)
+            self.crop_controls_widget.setVisible(False)
+            self.viewer.set_crop_mode(False)
+
+        # Clear crop geometry
+        self.crop_rect = None
+        self.crop_ratio = None
+
+        # Clear saved crop from viewer
+        if self.viewer:
+            self.viewer.set_saved_crop_rect(None)
+            self.viewer.set_crop_rect(None)
+
+        # Reset crop ratio combo box to "Free"
+        self.crop_ratio_combo.setCurrentIndex(0)
+
+        # Reset all channel controllers
+        for controller in self.controllers:
+            controller.reset_all_sliders()
+            controller.clear_image()
+
+        # Clear the main viewer
+        if self.viewer:
+            self.viewer.clear_image()
+
+        # Update UI state (manages save and crop button states, and mode indicator)
+        self.update_save_button_state()
+
+        # Show status message
+        self.status_handler.set_message("Application reset to default state", self.status_handler.MEDIUM_TIMEOUT)
+
     def update_save_button_state(self) -> None:
         """
-        Update the enabled state of the save button based on image availability.
+        Update the enabled state of the save button and crop button based on image availability.
 
         Args:
             self (MainWindow): The instance of the main window.
@@ -512,6 +581,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         # Enable save button if at least one channel image is available
         has_images = any(img is not None for img in self.aligned)
         self.save_btn.setEnabled(has_images)
+
+        # Enable crop button if at least one processed image is available
+        has_processed = any(img is not None for img in self.processed)
+        self.crop_mode_btn.setEnabled(has_processed)
 
         # Update mode indicator based on loaded channels
         self._update_mode_from_state()

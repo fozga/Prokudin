@@ -114,6 +114,40 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
             self.fitInView(self.photo, Qt.AspectRatioMode.KeepAspectRatio)
         self.zoom = 1.0
 
+    def clear_image(self) -> None:
+        """
+        Clears the displayed image and resets the viewer to empty state.
+
+        Returns:
+            None
+
+        Behavior:
+            - Removes the current pixmap from the scene.
+            - Creates a new empty pixmap item.
+            - Resets zoom and view state.
+            - Clears scrollbars by resetting scene rectangle.
+        """
+        # Remove existing photo from scene
+        if self.photo is not None:
+            self._scene.removeItem(self.photo)
+
+        # Create new empty pixmap item
+        self.photo = self._scene.addPixmap(QPixmap())
+
+        # Reset scene rect to minimal size to clear scrollbars
+        self._scene.setSceneRect(0, 0, 1, 1)
+
+        # Reset zoom and view state
+        self.zoom = 1.0
+        self.fit_to_view = False
+        self.resetTransform()
+
+        # Force viewport update to refresh display
+        self.viewport().update()
+
+        # Ensure scrollbars are hidden
+        self.setSceneRect(0, 0, 1, 1)
+
     def wheelEvent(self, event: QWheelEvent) -> None:  # pylint: disable=C0103
         """
         Handles mouse wheel events for zooming.
@@ -294,9 +328,12 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
         """
         return self._crop_handler.get_saved_crop_rect()
 
-    def set_saved_crop_rect(self, rect: QRect) -> None:
+    def set_saved_crop_rect(self, rect: Union[QRect, None]) -> None:
         """
         Sets the saved crop rectangle.
+
+        Args:
+            rect: The crop rectangle to save, or None to clear it.
         """
         self._crop_handler.set_saved_crop_rect(rect)
 
@@ -306,9 +343,12 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
         """
         return self._crop_handler.get_crop_rect()
 
-    def set_crop_rect(self, rect: QRect) -> None:
+    def set_crop_rect(self, rect: Union[QRect, None]) -> None:
         """
         Sets the crop rectangle for the image viewer and triggers a viewport update.
+
+        Args:
+            rect: The crop rectangle to set, or None to clear it.
         """
         self._crop_handler.set_crop_rect(rect)
 

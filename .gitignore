@@ -37,3 +37,6 @@ raw_files/
 *.raw
 output/
 processed_images/
+
+# Check logs
+checks/
