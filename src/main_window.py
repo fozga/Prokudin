@@ -565,6 +565,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Update UI state
         self.update_save_button_state()
+
+        # Disable crop button when no images are loaded
+        self.crop_mode_btn.setEnabled(False)
+
         self._update_mode_from_state()
 
         # Show status message
@@ -572,7 +576,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
     def update_save_button_state(self) -> None:
         """
-        Update the enabled state of the save button based on image availability.
+        Update the enabled state of the save button and crop button based on image availability.
 
         Args:
             self (MainWindow): The instance of the main window.
@@ -583,6 +587,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         # Enable save button if at least one channel image is available
         has_images = any(img is not None for img in self.aligned)
         self.save_btn.setEnabled(has_images)
+
+        # Enable crop button if at least one processed image is available
+        has_processed = any(img is not None for img in self.processed)
+        self.crop_mode_btn.setEnabled(has_processed)
 
         # Update mode indicator based on loaded channels
         self._update_mode_from_state()

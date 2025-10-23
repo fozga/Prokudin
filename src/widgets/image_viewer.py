@@ -125,6 +125,7 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
             - Removes the current pixmap from the scene.
             - Creates a new empty pixmap item.
             - Resets zoom and view state.
+            - Clears scrollbars by resetting scene rectangle.
         """
         if self.photo is not None:
             self._scene.removeItem(self.photo)
@@ -132,13 +133,16 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
         # Create new empty pixmap item
         self.photo = self._scene.addPixmap(QPixmap())
 
-        # Reset scene rect
-        self.setSceneRect(0, 0, 0, 0)
+        # Reset scene rect to (0,0) with no size to clear scrollbars
+        self._scene.setSceneRect(0, 0, 0, 0)
 
         # Reset zoom and view state
         self.zoom = 1.0
         self.fit_to_view = False
         self.resetTransform()
+
+        # Force viewport update to refresh display
+        self.viewport().update()
 
     def wheelEvent(self, event: QWheelEvent) -> None:  # pylint: disable=C0103
         """

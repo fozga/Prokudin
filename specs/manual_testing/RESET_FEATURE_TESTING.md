@@ -25,8 +25,9 @@
 
 **Expected Results:**
 - ✅ All channel previews show gray placeholder
-- ✅ Main viewer is cleared (empty)
+- ✅ Main viewer is cleared (empty, no scrollbars)
 - ✅ Save button is disabled
+- ✅ Crop button is disabled
 - ✅ All images are removed from memory
 - ✅ Status message appears
 
