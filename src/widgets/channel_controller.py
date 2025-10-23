@@ -41,6 +41,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from ..default_state import DefaultState
+
 # Import the ResetSlider class
 from .sliders import ResetSlider
 
@@ -112,11 +114,14 @@ class ChannelController(QGroupBox):  # pylint: disable=too-many-instance-attribu
         self.text_inputs = {}
         self.default_values = {}  # Store default values for reset functionality
 
+        # Get default values from DefaultState
+        defaults = DefaultState.get_slider_defaults()
+
         # Define slider parameters
         slider_configs: dict[str, dict[str, Union[int, str]]] = {
-            "brightness": {"min": -100, "max": 100, "default": 0, "label": "Brightness"},
-            "contrast": {"min": -100, "max": 100, "default": 0, "label": "Contrast"},
-            "intensity": {"min": 0, "max": 100, "default": 100, "label": "Intensity"},
+            "brightness": {"min": -100, "max": 100, "default": defaults["brightness"], "label": "Brightness"},
+            "contrast": {"min": -100, "max": 100, "default": defaults["contrast"], "label": "Contrast"},
+            "intensity": {"min": 0, "max": 100, "default": defaults["intensity"], "label": "Intensity"},
         }
 
         # Create a grid layout for the adjustment controls
@@ -244,6 +249,28 @@ class ChannelController(QGroupBox):  # pylint: disable=too-many-instance-attribu
 
             # Emit value changed signal to update processing
             self.value_changed.emit()
+
+    def reset_all_sliders(self) -> None:
+        """
+        Reset all sliders to their default values.
+
+        This method is used when resetting the entire application state.
+        """
+        for name, slider in self.sliders.items():
+            if name in self.default_values:
+                slider.setValue(self.default_values[name])
+
+        # Emit value changed signal once after all sliders are reset
+        self.value_changed.emit()
+
+    def clear_image(self) -> None:
+        """
+        Clear the processed image and reset preview to placeholder.
+
+        This method is used when resetting the channel state.
+        """
+        self.processed_image = None
+        self._create_placeholder_preview()
 
     def _create_placeholder_preview(self) -> None:
         """Create an empty placeholder preview."""
