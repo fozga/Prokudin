@@ -27,6 +27,7 @@ from PyQt5.QtGui import QMouseEvent, QPainter, QPixmap, QResizeEvent, QWheelEven
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QWidget
 
 from src.widgets.crop_handler import CropHandler
+from src.widgets.grid_overlay import GridOverlay
 
 
 class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attributes,too-many-public-methods
@@ -74,6 +75,9 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
 
         # Initialize crop handler
         self._crop_handler = CropHandler(self)
+
+        # Initialize grid overlay
+        self._grid_overlay = GridOverlay()
 
     def toggle_view(self) -> None:
         """
@@ -369,4 +373,13 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
         Returns:
             None
         """
+        # Draw crop overlay first
         self._crop_handler.draw_foreground(painter, rect, self.sceneRect())
+
+        # Draw grid overlay
+        # If in crop mode, draw grid only in crop area (handled by crop_handler)
+        # Otherwise, draw grid on entire image
+        if not self._crop_handler.is_crop_mode() and self.photo and self.photo.pixmap():
+            # Draw grid on the entire displayed image
+            image_rect = self.photo.boundingRect()
+            self._grid_overlay.draw_grid(painter, image_rect)
