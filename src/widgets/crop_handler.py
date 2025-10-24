@@ -767,19 +767,20 @@ class CropHandler:
             )
         )
 
-        # Draw grid within the crop rectangle
-        self._grid_overlay.draw_grid(painter, crop_rect)
+        # Draw grid within the crop rectangle only if valid
+        if crop_rect.isValid() and not crop_rect.isEmpty():
+            self._grid_overlay.draw_grid(painter, crop_rect)
 
         # Draw crop rectangle
         painter.setCompositionMode(QPainter.CompositionMode_Source)
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        pen = QPen(QColor("white"), 3, Qt.PenStyle.DashLine)
+        pen = QPen(QColor("white"), 2, Qt.PenStyle.DashLine)
         painter.setPen(pen)
         painter.drawRect(crop_rect)
 
         # Draw handles
-        handle_size = 10
-        pen = QPen(QColor("white"), 3, Qt.PenStyle.SolidLine)
+        handle_size = 8
+        pen = QPen(QColor("white"), 2, Qt.PenStyle.SolidLine)
         painter.setPen(pen)
         painter.setBrush(QColor("white"))
 
