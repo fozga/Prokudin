@@ -27,6 +27,8 @@ from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, Qt
 from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import QApplication, QGraphicsPixmapItem, QGraphicsView
 
+from src.widgets.grid_overlay import GridOverlay
+
 
 @dataclass
 class EdgeConstraints:
@@ -94,6 +96,9 @@ class CropHandler:
             "fixed_edges": None,  # Fixed edges during corner resize
         }
         self._crop_ratio: Union[tuple[int, int], None] = None  # Keep this separate as it's used frequently
+
+        # Initialize grid overlay for crop area
+        self._grid_overlay = GridOverlay()
 
     def set_crop_mode(self, enabled: bool, photo: Union[QGraphicsPixmapItem, None]) -> None:
         """
@@ -761,6 +766,10 @@ class CropHandler:
                 scene_rect.bottom() - crop_rect.bottom(),
             )
         )
+
+        # Draw grid within the crop rectangle only if valid
+        if crop_rect.isValid() and not crop_rect.isEmpty():
+            self._grid_overlay.draw_grid(painter, crop_rect)
 
         # Draw crop rectangle
         painter.setCompositionMode(QPainter.CompositionMode_Source)
