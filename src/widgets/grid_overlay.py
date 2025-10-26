@@ -17,7 +17,8 @@
 
 """
 Grid overlay for image viewer.
-Provides rule-of-thirds grid lines for composition guidance.
+Provides various grid types for composition guidance, including rule-of-thirds (3x3)
+and golden ratio grids.
 """
 
 from typing import Union
@@ -28,11 +29,16 @@ from PyQt5.QtGui import QColor, QPainter, QPen
 
 class GridOverlay:
     """
-    Manages and draws a rule-of-thirds grid overlay on images.
+    Manages and draws grid overlays on images.
 
-    The grid divides the image area into 9 equal parts using 2 horizontal
-    and 2 vertical lines at 1/3 and 2/3 positions.
+    Supports multiple grid types:
+    - 3x3: Divides the image into 9 equal parts (rule-of-thirds)
+    - Golden Ratio: Uses the golden ratio (1:0.618:1) for grid lines
     """
+
+    # Grid type constants
+    GRID_TYPE_3X3 = "3x3"
+    GRID_TYPE_GOLDEN_RATIO = "golden_ratio"
 
     def __init__(self) -> None:
         """Initialize the grid overlay with default settings."""
@@ -41,6 +47,7 @@ class GridOverlay:
         self._line_width = 4
         self._line_style = Qt.PenStyle.SolidLine
         self._opacity = 128  # Semi-transparent (0-255)
+        self._grid_type = self.GRID_TYPE_3X3  # Default to 3x3 grid
 
     def set_enabled(self, enabled: bool) -> None:
         """
@@ -96,9 +103,27 @@ class GridOverlay:
         """
         self._opacity = max(0, min(255, opacity))
 
+    def set_grid_type(self, grid_type: str) -> None:
+        """
+        Set the grid type.
+
+        Args:
+            grid_type: The grid type to use (GRID_TYPE_3X3 or GRID_TYPE_GOLDEN_RATIO).
+        """
+        self._grid_type = grid_type
+
+    def get_grid_type(self) -> str:
+        """
+        Get the current grid type.
+
+        Returns:
+            str: The current grid type.
+        """
+        return self._grid_type
+
     def draw_grid(self, painter: QPainter, rect: Union[QRect, QRectF]) -> None:
         """
-        Draw the rule-of-thirds grid lines on the given rectangle.
+        Draw the grid lines on the given rectangle.
 
         Args:
             painter: QPainter object to draw with.
@@ -121,6 +146,23 @@ class GridOverlay:
         painter.setPen(pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
 
+        # Draw grid based on type
+        if self._grid_type == self.GRID_TYPE_3X3:
+            self._draw_3x3_grid(painter, rect)
+        elif self._grid_type == self.GRID_TYPE_GOLDEN_RATIO:
+            self._draw_golden_ratio_grid(painter, rect)
+
+        # Restore the painter state
+        painter.restore()
+
+    def _draw_3x3_grid(self, painter: QPainter, rect: QRectF) -> None:
+        """
+        Draw a rule-of-thirds (3x3) grid.
+
+        Args:
+            painter: QPainter object to draw with.
+            rect: The rectangle area to draw the grid on.
+        """
         # Calculate positions for rule-of-thirds lines
         left = rect.left()
         top = rect.top()
@@ -143,5 +185,40 @@ class GridOverlay:
         painter.drawLine(int(left), int(y1), int(left + width), int(y1))
         painter.drawLine(int(left), int(y2), int(left + width), int(y2))
 
-        # Restore the painter state
-        painter.restore()
+    def _draw_golden_ratio_grid(self, painter: QPainter, rect: QRectF) -> None:
+        """
+        Draw a golden ratio grid (1:0.618:1).
+
+        The golden ratio divides the image using the ratio 1:0.618:1,
+        which is approximately 0.382 and 0.618 of the total dimension.
+
+        Args:
+            painter: QPainter object to draw with.
+            rect: The rectangle area to draw the grid on.
+        """
+        # Calculate positions for golden ratio lines
+        left = rect.left()
+        top = rect.top()
+        width = rect.width()
+        height = rect.height()
+
+        # Golden ratio: φ = 1.618...
+        # For 1:0.618:1 ratio, the lines are at 0.382 and 0.618
+        golden_ratio_small = 0.382  # 1 / (1 + φ) ≈ 0.382
+        golden_ratio_large = 0.618  # φ / (1 + φ) ≈ 0.618
+
+        # Vertical lines at golden ratio positions
+        x1 = left + width * golden_ratio_small
+        x2 = left + width * golden_ratio_large
+
+        # Horizontal lines at golden ratio positions
+        y1 = top + height * golden_ratio_small
+        y2 = top + height * golden_ratio_large
+
+        # Draw the vertical lines
+        painter.drawLine(int(x1), int(top), int(x1), int(top + height))
+        painter.drawLine(int(x2), int(top), int(x2), int(top + height))
+
+        # Draw the horizontal lines
+        painter.drawLine(int(left), int(y1), int(left + width), int(y1))
+        painter.drawLine(int(left), int(y2), int(left + width), int(y2))

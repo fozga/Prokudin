@@ -1,7 +1,7 @@
 # Grid Overlay Feature - Implementation Summary
 
 ## Overview
-Added a rule-of-thirds grid overlay to the image display that helps with composition. The grid divides the image into 9 equal parts using 2 horizontal and 2 vertical lines. In crop mode, the grid is visible only within the selected crop area and updates dynamically as the user modifies the crop. Outside crop mode, the grid is visible on the entire displayed preview.
+Added grid overlay functionality to the image display that helps with composition. The feature supports multiple grid types including rule-of-thirds (3x3) and golden ratio (1:0.618:1) grids. In crop mode, the grid is visible only within the selected crop area and updates dynamically as the user modifies the crop. Outside crop mode, the grid is visible on the entire displayed preview.
 
 Users can control the grid through a dedicated Grid button in the left sidebar, which opens a popup dialog for selecting grid type and adjusting line width.
 
@@ -12,26 +12,35 @@ Created a dedicated class to manage and draw the grid overlay.
 
 **Features:**
 - `GridOverlay` class with configurable grid settings
-- Rule-of-thirds grid (2 vertical and 2 horizontal lines)
-- Lines positioned at 1/3 and 2/3 of the image dimensions
+- Multiple grid types support:
+  - **3x3 Grid**: Rule-of-thirds grid (2 vertical and 2 horizontal lines at 1/3 and 2/3 positions)
+  - **Golden Ratio Grid**: Based on golden ratio (1:0.618:1) with lines at 0.382 and 0.618 positions
 - Semi-transparent white lines (128/255 opacity)
 - Configurable line width (1-10 pixels, default 4)
 - Support for both QRect and QRectF rectangle types
 
 **Key Methods:**
-- `__init__()` - Initializes grid with default settings (enabled, white color, 4px width, solid lines, 128 opacity)
+- `__init__()` - Initializes grid with default settings (enabled, 3x3 grid type, white color, 4px width, solid lines, 128 opacity)
 - `set_enabled(enabled)` - Enable/disable grid display
 - `is_enabled()` - Check if grid is enabled
 - `set_color(color)` - Set grid line color
 - `set_line_width(width)` - Set grid line width (1-10 pixels)
 - `get_line_width()` - Get current line width
 - `set_opacity(opacity)` - Set transparency (0-255)
-- `draw_grid(painter, rect)` - Main drawing method that calculates and draws grid lines
-- `_calculate_grid_lines(rect)` - Calculates horizontal and vertical line positions
-- `_draw_grid_lines(painter, h_lines, v_lines)` - Draws the actual lines
+- `set_grid_type(grid_type)` - Set grid type (3x3 or golden_ratio)
+- `get_grid_type()` - Get current grid type
+- `draw_grid(painter, rect)` - Main drawing method that delegates to specific grid type
+- `_draw_3x3_grid(painter, rect)` - Draws rule-of-thirds grid
+- `_draw_golden_ratio_grid(painter, rect)` - Draws golden ratio grid
+
+**Grid Types:**
+- **GRID_TYPE_3X3**: Lines at 1/3 and 2/3 positions (rule-of-thirds composition)
+- **GRID_TYPE_GOLDEN_RATIO**: Lines at 0.382 and 0.618 positions (golden ratio φ = 1.618)
 
 **Design:**
-- Lines are drawn at exactly 1/3 and 2/3 positions for rule-of-thirds composition
+- Grid type determines line positioning
+- 3x3 grid divides image into 9 equal parts
+- Golden ratio grid uses aesthetically pleasing ratio found in nature
 - Uses QPainter for efficient rendering
 - Configurable properties allow UI controls for user customization
 - Works in both scene coordinates and viewport coordinates
@@ -57,6 +66,7 @@ Created a popup dialog for grid settings configuration.
 - **Grid Type List:**
   - "None" - Disables grid overlay
   - "3x3 Grid" - Rule of thirds grid (default)
+  - "Golden Ratio" - Golden ratio grid (1:0.618:1)
   - Future: More grid types can be easily added
 
 **Signals:**
@@ -157,8 +167,12 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
 - Dialog appears at: button top-left + button width + 10px right, button top - dialog height
 
 **`on_grid_type_changed(grid_type: str)`**
-**`on_grid_type_changed(grid_type: str)`**
 - Handles grid type selection changes from dialog
+- Supports three grid types:
+  - "none": Disables the grid overlay
+  - "3x3": Enables rule-of-thirds grid (lines at 1/3 and 2/3)
+  - "golden_ratio": Enables golden ratio grid (lines at 0.382 and 0.618)
+- Updates the grid type in the shared grid overlay
 - Enables/disables the shared grid overlay in viewer (automatically applies to crop mode)
 - Updates status bar with current grid state
 - Refreshes viewport to show changes immediately
@@ -174,6 +188,7 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
 ### Shared Grid Overlay Design
 - **Single Source of Truth:** Only one `GridOverlay` instance exists (owned by `ImageViewer`)
 - **Shared Reference:** `CropHandler` receives and uses the same instance
+- **Multiple Grid Types:** Supports different composition guides (3x3, golden ratio)
 - **Benefits:**
   - No synchronization issues between viewer and crop modes
   - Simpler state management - changes apply everywhere automatically
@@ -213,7 +228,9 @@ Note: The `CropHandler` no longer exposes a `grid_overlay` property since it use
 ### Visual Feedback
 - Semi-transparent white lines for good visibility on most images
 - Configurable line width (1-10 pixels) for user preference
-- Grid helps with rule-of-thirds composition technique
+- Multiple grid types for different composition techniques:
+  - **3x3 Grid**: Classic rule-of-thirds (divides image into 9 equal parts)
+  - **Golden Ratio**: Aesthetically pleasing ratio based on φ ≈ 1.618 (lines at 38.2% and 61.8%)
 - Grid can be completely disabled via "None" option
 
 ### Grid Control Dialog
@@ -250,16 +267,18 @@ Note: The `CropHandler` no longer exposes a `grid_overlay` property since it use
   - Crop mode
 - Grid button always accessible in left sidebar
 - Settings persist during session (until grid type is changed)
+- Multiple grid types available for different composition preferences
 
 ## Future Enhancements
 Potential improvements for future versions:
-- Additional grid patterns (golden ratio, diagonal lines, center lines)
+- Additional grid patterns (diagonal lines, center lines, phi grid)
 - Grid color customization
 - Grid line style options (dashed, dotted)
 - Grid visibility based on zoom level
 - Keyboard shortcut to toggle grid
 - Save grid preferences between sessions
 - Custom grid configurations
+- Grid opacity controls in UI
 
 ## Dependencies
 - PyQt5.QtCore (QRect, QRectF, Qt)

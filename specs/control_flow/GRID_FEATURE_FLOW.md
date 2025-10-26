@@ -52,7 +52,7 @@
                 ▼                             ▼
    ┌─────────────────────┐       ┌─────────────────────────┐
    │ User Changes        │       │ User Changes            │
-   │ Line Width          │       │ Grid Type               │
+   │ Grid Type               │       │ Grid Type               │
    └──────────┬──────────┘       └────────────┬─────────────┘
               │                               │
               ▼                               ▼
@@ -60,6 +60,8 @@
    │ Click +/- buttons   │       │ Select from list:       │
    │ Width: 1-10 pixels  │       │ - None                  │
    └──────────┬──────────┘       │ - 3x3 Grid              │
+              │                  │ - Golden Ratio          │
+              │                  └────────────┬─────────────┘
               │                  └────────────┬─────────────┘
               │                               │
               ▼                               ▼
@@ -128,9 +130,9 @@
              └───────────┬───────────────────┘
                          │
                          ▼
-              ┌──────────────────────┐
-              │ GridOverlay.draw()   │
-              └──────────┬───────────┘
+              ┌──────────────────────────────┐
+              │ GridOverlay.draw()           │
+              └──────────┬───────────────────┘
                          │
                          ▼
               ┌──────────────────────────────┐
@@ -140,33 +142,28 @@
                          │
                          ▼
               ┌──────────────────────────────┐
-              │ _calculate_grid_lines(rect)  │
-              │                              │
-              │ Calculate dimensions:        │
-              │ • width = rect.width()       │
-              │ • height = rect.height()     │
-              │                              │
-              │ Calculate positions:         │
-              │ • h_line_1 = top + h/3       │
-              │ • h_line_2 = top + 2h/3      │
-              │ • v_line_1 = left + w/3      │
-              │ • v_line_2 = left + 2w/3     │
+              │ Check grid type              │
               └──────────┬───────────────────┘
                          │
-                         ▼
-              ┌──────────────────────────────┐
-              │ _draw_grid_lines()           │
-              │                              │
-              │ Configure pen:               │
-              │ • color = white              │
-              │ • width = user-set (1-10px)  │
-              │ • opacity = 128 (50%)        │
-              │ • style = solid              │
-              │                              │
-              │ Draw lines:                  │
-              │ • 2 horizontal lines         │
-              │ • 2 vertical lines           │
-              └──────────┬───────────────────┘
+              ┌──────────┴──────────┐
+              │                     │
+              ▼                     ▼
+┌─────────────────────────┐  ┌─────────────────────────┐
+│ _draw_3x3_grid()        │  │ _draw_golden_ratio_grid()│
+│                         │  │                         │
+│ Calculate positions:    │  │ Calculate positions:    │
+│ • h_line_1 = top + h/3  │  │ • h_line_1 = top +      │
+│ • h_line_2 = top + 2h/3 │  │             h * 0.382   │
+│ • v_line_1 = left + w/3 │  │ • h_line_2 = top +      │
+│ • v_line_2 = left + 2w/3│  │             h * 0.618   │
+│                         │  │ • v_line_1 = left +     │
+│ Draw 2 horizontal lines │  │             w * 0.382   │
+│ Draw 2 vertical lines   │  │ • v_line_2 = left +     │
+│                         │  │             w * 0.618   │
+│                         │  │                         │
+│                         │  │ Draw 2 horizontal lines │
+│                         │  │ Draw 2 vertical lines   │
+└─────────────────────────┘  └─────────────────────────┘
                          │
                          ▼
               ┌──────────────────────────────┐
@@ -210,9 +207,15 @@ Select "None"                   →    Emit grid_type_changed("none")
 
 Select "3x3 Grid"               →    Emit grid_type_changed("3x3")
                                      Enable viewer grid
-                                     Enable crop handler grid
+                                     Set grid type to 3x3
                                      Refresh viewport
                                      Show "3x3 grid overlay enabled"
+
+Select "Golden Ratio"           →    Emit grid_type_changed("golden_ratio")
+                                     Enable viewer grid
+                                     Set grid type to golden ratio
+                                     Refresh viewport
+                                     Show "Golden ratio grid overlay enabled"
 
 Click Outside Dialog            →    Dialog closes automatically
                                      Settings remain applied
@@ -279,35 +282,35 @@ Exit Crop Mode                  →    Hide crop rectangle
 ### Flow 3: Grid Line Calculation
 
 ```
-Input: Rectangle (x, y, width, height)
+Input: Rectangle (x, y, width, height) + Grid Type
                 │
                 ▼
-Calculate thirds of width
-    third_w = width / 3
+      ┌─────────┴─────────┐
+      │                   │
+      ▼                   ▼
+3x3 Grid Type      Golden Ratio Type
+      │                   │
+      ▼                   ▼
+Calculate thirds    Calculate golden ratio
+    w3 = width/3        gr_s = 0.382
+    h3 = height/3       gr_l = 0.618
+      │                   │
+      ▼                   ▼
+Vertical lines      Vertical lines
+v1 = x + w3         v1 = x + width * gr_s
+v2 = x + 2*w3       v2 = x + width * gr_l
+      │                   │
+      ▼                   ▼
+Horizontal lines    Horizontal lines
+h1 = y + h3         h1 = y + height * gr_s
+h2 = y + 2*h3       h2 = y + height * gr_l
+      │                   │
+      └─────────┬─────────┘
                 │
                 ▼
-Calculate thirds of height
-    third_h = height / 3
-                │
-                ▼
-Calculate vertical line positions
-    v_line_1 = x + third_w
-    v_line_2 = x + 2 * third_w
-                │
-                ▼
-Calculate horizontal line positions
-    h_line_1 = y + third_h
-    h_line_2 = y + 2 * third_h
-                │
-                ▼
-Return line coordinates
-    horizontal: [h_line_1, h_line_2]
-    vertical:   [v_line_1, v_line_2]
-                │
-                ▼
-Draw lines with QPainter
-    For each h_line: draw(left, h_line, right, h_line)
-    For each v_line: draw(v_line, top, v_line, bottom)
+        Draw lines with QPainter
+        For each h_line: draw(left, h, right, h)
+        For each v_line: draw(v, top, v, bottom)
 ```
 
 ## State Transitions

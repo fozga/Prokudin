@@ -27,8 +27,8 @@ from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QListWidget, QPushButto
 # Grid type constants
 GRID_TYPE_NONE = "none"
 GRID_TYPE_3X3 = "3x3"
+GRID_TYPE_GOLDEN_RATIO = "golden_ratio"
 # Future grid types can be added here:
-# GRID_TYPE_GOLDEN_RATIO = "golden_ratio"
 # GRID_TYPE_DIAGONAL = "diagonal"
 
 
@@ -50,8 +50,8 @@ class GridSettingsDialog(QFrame):
     GRID_TYPES = [
         ("None", GRID_TYPE_NONE),
         ("3x3 Grid", GRID_TYPE_3X3),
+        ("Golden Ratio", GRID_TYPE_GOLDEN_RATIO),
         # Future grid types can be added here:
-        # ("Golden Ratio", GRID_TYPE_GOLDEN_RATIO),
         # ("Diagonal Lines", GRID_TYPE_DIAGONAL),
     ]
 

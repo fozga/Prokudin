@@ -31,6 +31,7 @@
 - ✅ "Grid Type:" label is present
 - ✅ List shows "None" option
 - ✅ List shows "3x3 Grid" option
+- ✅ List shows "Golden Ratio" option
 - ✅ "3x3 Grid" is selected by default
 - ✅ All elements are properly aligned
 
@@ -64,6 +65,9 @@
 5. Observe the grid overlay
 6. Click on "3x3 Grid" again
 7. Observe the grid overlay
+8. Click on "Golden Ratio" in the list
+9. Observe the grid overlay
+10. Switch between all grid types multiple times
 
 **Expected Results:**
 - ✅ Selecting "None" disables grid immediately
@@ -71,10 +75,15 @@
 - ✅ Grid disappears from crop area (if in crop mode)
 - ✅ Status bar shows "Grid overlay disabled"
 - ✅ Selecting "3x3 Grid" enables grid immediately
-- ✅ Grid appears on viewer
+- ✅ Grid appears on viewer with lines at 1/3 and 2/3
 - ✅ Grid appears in crop area (if in crop mode)
 - ✅ Status bar shows "3x3 grid overlay enabled"
+- ✅ Selecting "Golden Ratio" enables grid immediately
+- ✅ Grid appears with lines at 38.2% and 61.8% positions
+- ✅ Golden ratio lines are positioned differently than 3x3
+- ✅ Status bar shows "Golden ratio grid overlay enabled"
 - ✅ Changes apply without closing dialog
+- ✅ Grid type transitions are smooth
 
 ### Scenario 5: Dialog Positioning
 **Steps:**
@@ -134,12 +143,30 @@
 5. Observe the combined RGB image display
 
 **Expected Results:**
-- ✅ Grid overlay is visible on the image
+- ✅ Grid overlay is visible on the image (default: 3x3)
 - ✅ Grid has 2 horizontal lines at 1/3 and 2/3 height
 - ✅ Grid has 2 vertical lines at 1/3 and 2/3 width
 - ✅ Grid divides image into 9 equal parts
 - ✅ Grid lines are white, semi-transparent, and clearly visible
 - ✅ Grid lines are 4 pixels wide (default)
+
+### Scenario 8a: Golden Ratio Grid Visual Verification
+**Steps:**
+1. Load images in all channels
+2. Click "Grid" button and select "Golden Ratio"
+3. Measure or visually verify line positions
+4. Compare with 3x3 grid positions
+5. Test on images with different aspect ratios
+
+**Expected Results:**
+- ✅ Grid overlay is visible on the image
+- ✅ Grid has 2 horizontal lines at approximately 38.2% and 61.8% height
+- ✅ Grid has 2 vertical lines at approximately 38.2% and 61.8% width
+- ✅ Grid lines are positioned differently than 3x3 grid
+- ✅ Lines are closer to edges than 3x3 grid (38.2% vs 33.3%)
+- ✅ Golden ratio creates aesthetically pleasing composition
+- ✅ Grid lines are white, semi-transparent, and clearly visible
+- ✅ Grid works correctly with all aspect ratios
 
 ### Scenario 9: Changing Line Width with Visible Grid
 **Steps:**
@@ -328,18 +355,21 @@
 **Steps:**
 1. Load images and enter crop mode
 2. Create wide crop rectangle (e.g., 16:9)
-3. Observe grid divisions
+3. Test with both 3x3 and golden ratio grids
 4. Create tall crop rectangle (e.g., 9:16)
-5. Observe grid divisions
+5. Test with both grid types
 6. Create square crop rectangle (1:1)
-7. Observe grid divisions
+7. Test with both grid types
 
 **Expected Results:**
-- ✅ Grid adapts to crop aspect ratio
-- ✅ Vertical lines at 1/3 and 2/3 of crop width
-- ✅ Horizontal lines at 1/3 and 2/3 of crop height
-- ✅ Grid creates proper rule-of-thirds composition guide
-- ✅ Grid works for all aspect ratios
+- ✅ 3x3 grid adapts to crop aspect ratio
+- ✅ 3x3 vertical lines at 1/3 and 2/3 of crop width
+- ✅ 3x3 horizontal lines at 1/3 and 2/3 of crop height
+- ✅ Golden ratio grid adapts to crop aspect ratio
+- ✅ Golden ratio vertical lines at 38.2% and 61.8% of crop width
+- ✅ Golden ratio horizontal lines at 38.2% and 61.8% of crop height
+- ✅ Both grids create proper composition guides
+- ✅ Both grids work for all aspect ratios
 
 ### Scenario 21: Grid After Reset
 **Steps:**
@@ -393,7 +423,7 @@
 
 ## Visual Verification Checklist
 
-### Grid Line Positions
+### 3x3 Grid Line Positions
 - [ ] Horizontal line 1 at exactly 1/3 from top
 - [ ] Horizontal line 2 at exactly 2/3 from top (1/3 from bottom)
 - [ ] Vertical line 1 at exactly 1/3 from left
@@ -401,13 +431,22 @@
 - [ ] Lines divide area into 9 equal rectangles
 - [ ] Four intersection points create rule-of-thirds focal points
 
+### Golden Ratio Grid Line Positions
+- [ ] Horizontal line 1 at approximately 38.2% from top
+- [ ] Horizontal line 2 at approximately 61.8% from top
+- [ ] Vertical line 1 at approximately 38.2% from left
+- [ ] Vertical line 2 at approximately 61.8% from left
+- [ ] Lines create golden ratio proportions (1:0.618:1)
+- [ ] Four intersection points follow golden ratio composition
+
 ### Grid Visual Properties
 - [ ] Lines are white color
 - [ ] Lines are semi-transparent (can see image through them)
-- [ ] Lines are 3 pixels wide
+- [ ] Lines are 4 pixels wide (default)
 - [ ] Lines are solid (not dashed or dotted)
 - [ ] Lines span entire width/height of display area
 - [ ] Lines are straight and precise
+- [ ] Both grid types render with same visual quality
 
 ### Grid Behavior
 - [ ] Grid appears in normal view mode
@@ -416,6 +455,8 @@
 - [ ] Grid scales with zoom
 - [ ] Grid moves with pan
 - [ ] Grid updates smoothly during all operations
+- [ ] Can switch between 3x3 and golden ratio types
+- [ ] Grid type changes apply immediately
 
 ## Known Limitations
 (Document any known issues or limitations discovered during testing)
