@@ -78,6 +78,15 @@ class GridOverlay:
         """
         self._line_width = width
 
+    def get_line_width(self) -> int:
+        """
+        Get the current line width.
+
+        Returns:
+            int: The current line width in pixels.
+        """
+        return self._line_width
+
     def set_opacity(self, opacity: int) -> None:
         """
         Set the opacity of the grid lines.

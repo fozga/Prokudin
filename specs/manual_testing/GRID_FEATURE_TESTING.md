@@ -2,17 +2,130 @@
 
 ## Test Scenarios
 
-### Scenario 1: Grid in Empty Application
+### Scenario 1: Grid Button and Dialog Access
+**Steps:**
+1. Launch the application
+2. Observe the left sidebar
+3. Locate the "Grid" button at the bottom of the left sidebar
+4. Click the "Grid" button
+
+**Expected Results:**
+- ✅ "Grid" button is visible in left sidebar
+- ✅ Button is at the bottom of the sidebar
+- ✅ Clicking button opens Grid Settings dialog
+- ✅ Dialog appears as overlay above and to the right of button
+- ✅ Dialog is 200x200 pixels
+- ✅ Dialog has styled frame with raised shadow
+
+### Scenario 2: Grid Settings Dialog Content
+**Steps:**
+1. Click the "Grid" button
+2. Observe the dialog contents
+3. Check for all UI elements
+
+**Expected Results:**
+- ✅ Dialog shows "Line Width:" label at top
+- ✅ Minus (-) button is present
+- ✅ Width display shows current value (default: 4)
+- ✅ Plus (+) button is present
+- ✅ "Grid Type:" label is present
+- ✅ List shows "None" option
+- ✅ List shows "3x3 Grid" option
+- ✅ "3x3 Grid" is selected by default
+- ✅ All elements are properly aligned
+
+### Scenario 3: Grid Line Width Controls
+**Steps:**
+1. Click the "Grid" button to open settings
+2. Note the current width value
+3. Click the "+" button multiple times
+4. Observe the width value and grid lines
+5. Click the "-" button multiple times
+6. Try to go below 1 or above 10
+
+**Expected Results:**
+- ✅ Width starts at 4 pixels
+- ✅ "+" button increases width by 1
+- ✅ Width display updates immediately
+- ✅ Grid lines become thicker in real-time
+- ✅ "-" button decreases width by 1
+- ✅ Grid lines become thinner in real-time
+- ✅ Cannot go below 1 pixel (button disabled at 1)
+- ✅ Cannot go above 10 pixels (button disabled at 10)
+- ✅ Status bar shows width change message
+- ✅ Changes persist while dialog is open
+
+### Scenario 4: Grid Type Selection
+**Steps:**
+1. Load images in all channels
+2. Click the "Grid" button
+3. Verify "3x3 Grid" is selected
+4. Click on "None" in the list
+5. Observe the grid overlay
+6. Click on "3x3 Grid" again
+7. Observe the grid overlay
+
+**Expected Results:**
+- ✅ Selecting "None" disables grid immediately
+- ✅ Grid disappears from viewer
+- ✅ Grid disappears from crop area (if in crop mode)
+- ✅ Status bar shows "Grid overlay disabled"
+- ✅ Selecting "3x3 Grid" enables grid immediately
+- ✅ Grid appears on viewer
+- ✅ Grid appears in crop area (if in crop mode)
+- ✅ Status bar shows "3x3 grid overlay enabled"
+- ✅ Changes apply without closing dialog
+
+### Scenario 5: Dialog Positioning
+**Steps:**
+1. Click the "Grid" button
+2. Observe where the dialog appears
+3. Note the position relative to the button
+4. Close the dialog (click outside)
+5. Click the "Grid" button again
+
+**Expected Results:**
+- ✅ Dialog bottom-left corner aligns with button top-left
+- ✅ Dialog opens above the Grid button
+- ✅ Dialog opens to the right of the button
+- ✅ Dialog doesn't overlap the button
+- ✅ Dialog position is consistent on reopen
+- ✅ Dialog is fully visible on screen
+
+### Scenario 6: Dialog Closing Behavior
+**Steps:**
+1. Click the "Grid" button to open dialog
+2. Click somewhere on the image viewer
+3. Open dialog again
+4. Click on a channel controller
+5. Open dialog again
+6. Click on the dialog itself
+7. Click outside the dialog
+
+**Expected Results:**
+- ✅ Clicking on viewer closes dialog
+- ✅ Grid settings remain applied
+- ✅ Clicking on channel controller closes dialog
+- ✅ Clicking inside dialog keeps it open
+- ✅ Can interact with dialog controls
+- ✅ Clicking outside dialog closes it
+- ✅ All settings are preserved after closing
+
+### Scenario 7: Grid in Empty Application
 **Steps:**
 1. Launch the application
 2. Observe the main viewer area
+3. Click the "Grid" button
+4. Change grid settings
 
 **Expected Results:**
 - ✅ No grid is visible (no image loaded)
 - ✅ Application displays empty viewer
+- ✅ Grid settings dialog works normally
+- ✅ Settings are saved for when image is loaded
 - ✅ No errors or crashes
 
-### Scenario 2: Grid Appears with Loaded Image
+### Scenario 8: Grid Appears with Loaded Image
 **Steps:**
 1. Launch the application
 2. Load an image in the Red channel
@@ -26,9 +139,30 @@
 - ✅ Grid has 2 vertical lines at 1/3 and 2/3 width
 - ✅ Grid divides image into 9 equal parts
 - ✅ Grid lines are white, semi-transparent, and clearly visible
-- ✅ Grid lines are 3 pixels wide
+- ✅ Grid lines are 4 pixels wide (default)
 
-### Scenario 3: Grid with Single Channel View
+### Scenario 9: Changing Line Width with Visible Grid
+**Steps:**
+1. Load images in all channels
+2. Observe default grid (4px width)
+3. Click "Grid" button
+4. Click "+" button to increase to 8px
+5. Observe grid changes
+6. Click "-" button to decrease to 2px
+7. Observe grid changes
+8. Set back to default (4px)
+
+**Expected Results:**
+- ✅ Grid lines update immediately after each click
+- ✅ Thicker lines (8px) are very prominent
+- ✅ Thinner lines (2px) are more subtle
+- ✅ Grid divisions remain at 1/3 and 2/3
+- ✅ Grid remains smooth and anti-aliased
+- ✅ No flickering during width changes
+- ✅ Status bar shows width changes
+- ✅ Changes apply to both normal and crop grids
+
+### Scenario 10: Grid with Single Channel View
 **Steps:**
 1. Load images in all channels
 2. Switch to Red channel only view
@@ -42,7 +176,7 @@
 - ✅ Grid updates correctly when switching between channels
 - ✅ Grid maintains proper 1/3 divisions in each view
 
-### Scenario 4: Grid with Zoom Operations
+### Scenario 11: Grid with Zoom Operations
 **Steps:**
 1. Load images in all channels
 2. Verify grid is visible
@@ -59,7 +193,7 @@
 - ✅ Grid line width remains consistent (3 pixels)
 - ✅ No performance issues during zoom
 
-### Scenario 5: Grid with Pan Operations
+### Scenario 12: Grid with Pan Operations
 **Steps:**
 1. Load images in all channels
 2. Zoom in to 200% or more
@@ -76,7 +210,7 @@
 - ✅ Grid is always visible in the viewport
 - ✅ No visual artifacts or flickering
 
-### Scenario 6: Grid with Slider Adjustments
+### Scenario 13: Grid with Slider Adjustments
 **Steps:**
 1. Load images in all channels
 2. Verify grid is visible
@@ -93,7 +227,7 @@
 - ✅ Grid transparency works well with all image adjustments
 - ✅ No performance degradation
 
-### Scenario 7: Grid Enters Crop Mode
+### Scenario 14: Grid Enters Crop Mode
 **Steps:**
 1. Load images in all channels
 2. Verify grid is visible on entire preview
@@ -108,7 +242,7 @@
 - ✅ Grid is clipped to crop boundaries
 - ✅ No grid visible outside crop rectangle
 
-### Scenario 8: Grid in Crop Mode - Moving Crop
+### Scenario 15: Grid in Crop Mode - Moving Crop
 **Steps:**
 1. Load images and enter crop mode
 2. Verify grid is visible within crop rectangle
@@ -127,7 +261,7 @@
 - ✅ Grid follows crop rectangle smoothly
 - ✅ No visual glitches or lag
 
-### Scenario 9: Grid in Crop Mode - Resizing Crop
+### Scenario 16: Grid in Crop Mode - Resizing Crop
 **Steps:**
 1. Load images and enter crop mode
 2. Verify grid is visible within crop rectangle
@@ -144,7 +278,7 @@
 - ✅ Grid updates smoothly without flickering
 - ✅ Grid works correctly with all handles
 
-### Scenario 10: Grid Exits Crop Mode
+### Scenario 17: Grid Exits Crop Mode
 **Steps:**
 1. Load images and enter crop mode
 2. Verify grid is visible within crop rectangle
@@ -158,7 +292,7 @@
 - ✅ Normal grid shows correct divisions
 - ✅ Transition is smooth and immediate
 
-### Scenario 11: Grid with Crop Mode - Multiple Entries
+### Scenario 18: Grid with Crop Mode - Multiple Entries
 **Steps:**
 1. Load images
 2. Enter crop mode - observe grid in crop
@@ -173,7 +307,7 @@
 - ✅ Grid rendering remains consistent
 - ✅ No visual artifacts
 
-### Scenario 12: Grid with Different Crop Sizes
+### Scenario 19: Grid with Different Crop Sizes
 **Steps:**
 1. Load images and enter crop mode
 2. Create very small crop rectangle (e.g., 100x100 pixels)
@@ -190,7 +324,7 @@
 - ✅ Grid divisions are accurate at all sizes
 - ✅ Grid lines are always at 1/3 and 2/3 positions
 
-### Scenario 13: Grid with Different Crop Aspect Ratios
+### Scenario 20: Grid with Different Crop Aspect Ratios
 **Steps:**
 1. Load images and enter crop mode
 2. Create wide crop rectangle (e.g., 16:9)
@@ -207,7 +341,7 @@
 - ✅ Grid creates proper rule-of-thirds composition guide
 - ✅ Grid works for all aspect ratios
 
-### Scenario 14: Grid After Reset
+### Scenario 21: Grid After Reset
 **Steps:**
 1. Load images in all channels
 2. Verify grid is visible
@@ -221,7 +355,7 @@
 - ✅ No grid artifacts remain
 - ✅ Application is ready for new images
 
-### Scenario 15: Grid Visual Quality
+### Scenario 22: Grid Visual Quality
 **Steps:**
 1. Load images with various characteristics:
    - Bright image
@@ -240,7 +374,7 @@
 - ✅ 3-pixel line width is appropriate
 - ✅ Grid enhances composition without being distracting
 
-### Scenario 16: Grid Performance Test
+### Scenario 23: Grid Performance Test
 **Steps:**
 1. Load large images (e.g., 4000x3000 pixels or larger)
 2. Observe grid rendering time
@@ -296,6 +430,6 @@
 ## Test Results Summary
 - **Test Date:**
 - **Tester:**
-- **Tests Passed:** ____ / 16
+- **Tests Passed:** ____ / 23
 - **Issues Found:**
 - **Overall Status:** PASS / FAIL / PARTIAL

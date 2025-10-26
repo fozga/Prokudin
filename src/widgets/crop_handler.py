@@ -63,7 +63,7 @@ class EdgeResizeContext:
     bounds: QRectF
 
 
-class CropHandler:
+class CropHandler:  # pylint: disable=too-many-public-methods
     """
     Handles crop-related functionality for an image viewer.
 
@@ -99,6 +99,16 @@ class CropHandler:
 
         # Initialize grid overlay for crop area
         self._grid_overlay = GridOverlay()
+
+    @property
+    def grid_overlay(self) -> GridOverlay:
+        """
+        Get the grid overlay instance.
+
+        Returns:
+            GridOverlay: The grid overlay instance for crop area.
+        """
+        return self._grid_overlay
 
     def set_crop_mode(self, enabled: bool, photo: Union[QGraphicsPixmapItem, None]) -> None:
         """

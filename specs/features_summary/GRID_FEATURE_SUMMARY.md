@@ -3,6 +3,8 @@
 ## Overview
 Added a rule-of-thirds grid overlay to the image display that helps with composition. The grid divides the image into 9 equal parts using 2 horizontal and 2 vertical lines. In crop mode, the grid is visible only within the selected crop area and updates dynamically as the user modifies the crop. Outside crop mode, the grid is visible on the entire displayed preview.
 
+Users can control the grid through a dedicated Grid button in the left sidebar, which opens a popup dialog for selecting grid type and adjusting line width.
+
 ## Changes Made
 
 ### 1. New File: `src/widgets/grid_overlay.py`
@@ -13,33 +15,70 @@ Created a dedicated class to manage and draw the grid overlay.
 - Rule-of-thirds grid (2 vertical and 2 horizontal lines)
 - Lines positioned at 1/3 and 2/3 of the image dimensions
 - Semi-transparent white lines (128/255 opacity)
-- 3-pixel line width for good visibility
+- Configurable line width (1-10 pixels, default 4)
 - Support for both QRect and QRectF rectangle types
 
 **Key Methods:**
-- `__init__()` - Initializes grid with default settings (enabled, white color, 3px width, solid lines, 128 opacity)
+- `__init__()` - Initializes grid with default settings (enabled, white color, 4px width, solid lines, 128 opacity)
 - `set_enabled(enabled)` - Enable/disable grid display
+- `is_enabled()` - Check if grid is enabled
 - `set_color(color)` - Set grid line color
 - `set_line_width(width)` - Set grid line width (1-10 pixels)
-- `set_line_style(style)` - Set line style (solid, dashed, dotted, etc.)
+- `get_line_width()` - Get current line width
 - `set_opacity(opacity)` - Set transparency (0-255)
-- `draw(painter, rect)` - Main drawing method that calculates and draws grid lines
+- `draw_grid(painter, rect)` - Main drawing method that calculates and draws grid lines
 - `_calculate_grid_lines(rect)` - Calculates horizontal and vertical line positions
 - `_draw_grid_lines(painter, h_lines, v_lines)` - Draws the actual lines
 
 **Design:**
 - Lines are drawn at exactly 1/3 and 2/3 positions for rule-of-thirds composition
 - Uses QPainter for efficient rendering
-- Configurable properties allow future UI controls if needed
+- Configurable properties allow UI controls for user customization
 - Works in both scene coordinates and viewport coordinates
 
-### 2. Modified: `src/widgets/image_viewer.py`
+### 2. New File: `src/widgets/grid_settings_dialog.py`
+Created a popup dialog for grid settings configuration.
+
+**Features:**
+- `GridSettingsDialog` class extending QFrame
+- Frameless popup window that overlays the main window
+- Closes automatically when clicking outside the dialog
+- Line width control at the top with +/- buttons and display
+- List widget showing available grid types
+
+**Components:**
+- **Line Width Control:**
+  - Decrease button (-)
+  - Width display (non-editable, shows current value)
+  - Increase button (+)
+  - Range: 1-10 pixels
+  - Default: 4 pixels
+
+- **Grid Type List:**
+  - "None" - Disables grid overlay
+  - "3x3 Grid" - Rule of thirds grid (default)
+  - Future: More grid types can be easily added
+
+**Signals:**
+- `grid_type_changed(str)` - Emitted when user selects a different grid type
+- `line_width_changed(int)` - Emitted when user changes line width
+
+**Positioning:**
+- Anchors bottom-left corner to top-left of Grid button
+- Opens above and to the right of the button
+- Fixed size: 200x200 pixels
+
+### 3. Modified: `src/widgets/image_viewer.py`
 
 #### Imports
 - Added import for `GridOverlay` class
 
 #### Constructor Changes
-- Added `self.grid_overlay = GridOverlay()` to initialize grid overlay instance
+- Added `self._grid_overlay = GridOverlay()` to initialize grid overlay instance
+
+#### New Properties
+- Added `@property grid_overlay` - Public property to access the grid overlay instance
+- Added `@property crop_handler` - Public property to access the crop handler instance
 
 #### Modified Method: `drawForeground()`
 Enhanced the foreground drawing method to include grid overlay:
@@ -56,10 +95,13 @@ Enhanced the foreground drawing method to include grid overlay:
 - Grid follows pan operations
 - Grid remains visible during all image adjustments (brightness, contrast, etc.)
 
-### 3. Modified: `src/widgets/crop_handler.py`
+### 4. Modified: `src/widgets/crop_handler.py`
 
 #### Constructor Changes
-- Added `self.grid_overlay = GridOverlay()` to initialize grid overlay instance for crop mode
+- Added `self._grid_overlay = GridOverlay()` to initialize grid overlay instance for crop mode
+
+#### New Property
+- Added `@property grid_overlay` - Public property to access the grid overlay for crop area
 
 #### Modified Method: `draw_foreground()`
 Enhanced the crop mode drawing to include grid within crop rectangle:
@@ -77,6 +119,51 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
 - Grid scales with the crop area dimensions
 - Grid maintains 1/3 and 2/3 divisions within the crop bounds
 
+### 5. Modified: `src/main_window.py`
+
+#### Imports
+- Added import for `GridSettingsDialog` class
+
+#### Constructor Changes
+- Added `self.grid_settings_dialog: Union[GridSettingsDialog, None] = None` to track the dialog instance
+
+#### UI Layout Changes
+- **Added Left Sidebar:**
+  - New vertical layout on the left (5% width)
+  - Contains stretch to push content to bottom
+  - "Grid" button at the bottom of the sidebar
+  
+- **Reorganized Center Panel:**
+  - Moved image viewer to center panel (70% width)
+  - Kept New, Save, and Crop buttons at the top
+  - Maintained crop controls widget
+
+- **Layout Structure:**
+  - Left sidebar (5%): Grid button
+  - Center panel (70%): Viewer and controls
+  - Right panel (25%): Channel controllers
+
+#### New Methods
+
+**`open_grid_settings()`**
+- Opens the grid settings dialog as an overlay popup
+- Creates dialog on first call with current settings
+- Connects dialog signals to handler methods
+- Positions dialog above and to the right of Grid button
+- Dialog appears at: button top-left + button width + 10px right, button top - dialog height
+
+**`on_grid_type_changed(grid_type: str)`**
+- Handles grid type selection changes from dialog
+- Enables/disables grid overlay in both viewer and crop handler
+- Updates status bar with current grid state
+- Refreshes viewport to show changes immediately
+
+**`on_grid_line_width_changed(width: int)`**
+- Handles line width changes from dialog
+- Updates grid line width in both viewer and crop handler
+- Refreshes viewport to show changes immediately
+- Displays new width in status bar
+
 ## Technical Details
 
 ### Coordinate System
@@ -91,16 +178,36 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
 4. Crop handles (foreground, in crop mode)
 
 ### Performance
-- Grid is redrawn only when necessary (pan, zoom, crop changes)
+- Grid is redrawn only when necessary (pan, zoom, crop changes, settings changes)
 - Uses efficient QPainter drawing methods
 - Minimal performance impact
+- Dialog is created once and reused
+
+### Public API
+To avoid accessing protected members, public properties were added:
+- `ImageViewer.grid_overlay` - Access to viewer's grid overlay
+- `ImageViewer.crop_handler` - Access to crop handler
+- `CropHandler.grid_overlay` - Access to crop area's grid overlay
+- `GridOverlay.get_line_width()` - Get current line width
 
 ## User Experience
 
 ### Visual Feedback
 - Semi-transparent white lines for good visibility on most images
-- 3-pixel line width makes lines clearly visible without being obtrusive
+- Configurable line width (1-10 pixels) for user preference
 - Grid helps with rule-of-thirds composition technique
+- Grid can be completely disabled via "None" option
+
+### Grid Control Dialog
+- **Access:** Click "Grid" button in left sidebar
+- **Appearance:** Popup overlay above the Grid button
+- **Controls:** 
+  - Line width adjustment at top
+  - Grid type selection below
+- **Behavior:** 
+  - Changes apply immediately
+  - Closes when clicking outside
+  - Can be reopened anytime
 
 ### Behavior in Different Modes
 1. **Normal Mode (no crop):**
@@ -115,7 +222,7 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
    - Grid disappears outside crop boundaries
 
 ### Integration
-- Grid is always enabled by default
+- Grid is enabled by default (3x3 grid)
 - Grid works seamlessly with existing features:
   - Image loading
   - Channel switching
@@ -123,19 +230,23 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
   - Brightness/contrast/intensity adjustments
   - Zoom and pan operations
   - Crop mode
+- Grid button always accessible in left sidebar
+- Settings persist during session (until grid type is changed)
 
 ## Future Enhancements
 Potential improvements for future versions:
-- UI toggle button to enable/disable grid
+- Additional grid patterns (golden ratio, diagonal lines, center lines)
 - Grid color customization
-- Grid line width adjustment
-- Alternative grid patterns (golden ratio, center lines, etc.)
+- Grid line style options (dashed, dotted)
 - Grid visibility based on zoom level
 - Keyboard shortcut to toggle grid
+- Save grid preferences between sessions
+- Custom grid configurations
 
 ## Dependencies
 - PyQt5.QtCore (QRect, QRectF, Qt)
 - PyQt5.QtGui (QColor, QPainter, QPen)
+- PyQt5.QtWidgets (QFrame, QListWidget, QLabel, QPushButton, etc.)
 
 ## Testing
 See `GRID_FEATURE_TESTING.md` for comprehensive manual testing scenarios.
