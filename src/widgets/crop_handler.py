@@ -103,18 +103,8 @@ class CropHandler:  # pylint: disable=too-many-public-methods
         }
         self._crop_ratio: Union[tuple[int, int], None] = None  # Keep this separate as it's used frequently
 
-        # Use shared grid overlay instance
+        # Use shared grid overlay instance from viewer
         self._grid_overlay = grid_overlay
-
-    @property
-    def grid_overlay(self) -> GridOverlay:
-        """
-        Get the grid overlay instance.
-
-        Returns:
-            GridOverlay: The grid overlay instance for crop area.
-        """
-        return self._grid_overlay
 
     def set_crop_mode(self, enabled: bool, photo: Union[QGraphicsPixmapItem, None]) -> None:
         """
