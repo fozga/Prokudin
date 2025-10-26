@@ -24,7 +24,17 @@ from typing import Callable, Union
 
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QKeyEvent, QMouseEvent
-from PyQt5.QtWidgets import QComboBox, QHBoxLayout, QLabel, QMainWindow, QPushButton, QStatusBar, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QStatusBar,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .default_state import DefaultState
 from .handlers.channels import adjust_channel, load_channel, show_single_channel, update_channel_preview
@@ -32,7 +42,7 @@ from .handlers.display import show_combined_image, show_single_channel_image, up
 from .handlers.image_saving import save_image_with_dialog
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
-from .widgets.grid_settings_dialog import GridSettingsDialog
+from .widgets.grid_settings_dialog import GRID_TYPE_3X3, GRID_TYPE_NONE, GridSettingsDialog
 from .widgets.image_viewer import ImageViewer
 from .widgets.status_bar import StatusBarHandler
 
@@ -593,7 +603,7 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         if self.grid_settings_dialog is None:
             # Create dialog with current settings
             current_width = self.viewer.grid_overlay.get_line_width()
-            current_type = "3x3" if self.viewer.grid_overlay.is_enabled() else "none"
+            current_type = GRID_TYPE_3X3 if self.viewer.grid_overlay.is_enabled() else GRID_TYPE_NONE
 
             self.grid_settings_dialog = GridSettingsDialog(
                 current_width=current_width, current_grid_type=current_type, parent=self
@@ -603,14 +613,40 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             self.grid_settings_dialog.grid_type_changed.connect(self.on_grid_type_changed)
             self.grid_settings_dialog.line_width_changed.connect(self.on_grid_line_width_changed)
 
-        # Position the dialog above and to the right of the Grid button
+        # Position the dialog near the Grid button with screen boundary checks
         # Get the top-left corner of the button in global coordinates
         button_pos = self.grid_btn.mapToGlobal(self.grid_btn.rect().topLeft())
 
-        # Calculate position: bottom-left of dialog at top-left of button
-        # We need to move it up by the dialog height and right a bit
+        # Get screen geometry to ensure dialog stays within bounds
+        screen = self.screen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+        else:
+            # Fallback if screen is not available
+            screen_geometry = QApplication.desktop().availableGeometry()
+
+        dialog_width = self.grid_settings_dialog.width()
+        dialog_height = self.grid_settings_dialog.height()
+
+        # Default position: to the right and above the button
         dialog_x = button_pos.x() + self.grid_btn.width() + 10  # To the right of button
-        dialog_y = button_pos.y() - self.grid_settings_dialog.height()  # Above the button
+        dialog_y = button_pos.y() - dialog_height  # Above the button
+
+        # Check right boundary - if dialog goes off screen, position it to the left of button
+        if dialog_x + dialog_width > screen_geometry.right():
+            dialog_x = button_pos.x() - dialog_width - 10  # To the left of button
+
+        # Check left boundary - ensure dialog doesn't go off left edge
+        if dialog_x < screen_geometry.left():
+            dialog_x = screen_geometry.left() + 10
+
+        # Check top boundary - if dialog goes off screen, position it below the button
+        if dialog_y < screen_geometry.top():
+            dialog_y = button_pos.y() + self.grid_btn.height() + 10  # Below the button
+
+        # Check bottom boundary - ensure dialog doesn't go off bottom edge
+        if dialog_y + dialog_height > screen_geometry.bottom():
+            dialog_y = screen_geometry.bottom() - dialog_height - 10
 
         self.grid_settings_dialog.move(dialog_x, dialog_y)
 
@@ -623,17 +659,17 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         Handle grid type selection change.
 
         Args:
-            grid_type: The selected grid type ("none" or "3x3").
+            grid_type: The selected grid type (grid type constant).
 
         Returns:
             None
         """
-        if grid_type == "none":
+        if grid_type == GRID_TYPE_NONE:
             # Disable grid overlay
             self.viewer.grid_overlay.set_enabled(False)
             self.viewer.crop_handler.grid_overlay.set_enabled(False)
             self.status_handler.set_message("Grid overlay disabled", self.status_handler.SHORT_TIMEOUT)
-        elif grid_type == "3x3":
+        elif grid_type == GRID_TYPE_3X3:
             # Enable grid overlay
             self.viewer.grid_overlay.set_enabled(True)
             self.viewer.crop_handler.grid_overlay.set_enabled(True)

@@ -24,6 +24,13 @@ from typing import Optional
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QListWidget, QPushButton, QVBoxLayout, QWidget
 
+# Grid type constants
+GRID_TYPE_NONE = "none"
+GRID_TYPE_3X3 = "3x3"
+# Future grid types can be added here:
+# GRID_TYPE_GOLDEN_RATIO = "golden_ratio"
+# GRID_TYPE_DIAGONAL = "diagonal"
+
 
 class GridSettingsDialog(QFrame):
     """
@@ -39,8 +46,17 @@ class GridSettingsDialog(QFrame):
     MIN_LINE_WIDTH = 1
     MAX_LINE_WIDTH = 10
 
+    # Grid type definitions: (display_name, internal_value)
+    GRID_TYPES = [
+        ("None", GRID_TYPE_NONE),
+        ("3x3 Grid", GRID_TYPE_3X3),
+        # Future grid types can be added here:
+        # ("Golden Ratio", GRID_TYPE_GOLDEN_RATIO),
+        # ("Diagonal Lines", GRID_TYPE_DIAGONAL),
+    ]
+
     def __init__(
-        self, current_width: int = 4, current_grid_type: str = "3x3", parent: Optional[QWidget] = None
+        self, current_width: int = 4, current_grid_type: str = GRID_TYPE_3X3, parent: Optional[QWidget] = None
     ) -> None:
         """
         Initialize the grid settings overlay.
@@ -97,14 +113,15 @@ class GridSettingsDialog(QFrame):
         main_layout.addWidget(grid_label)
 
         self.grid_list = QListWidget()
-        self.grid_list.addItem("None")
-        self.grid_list.addItem("3x3 Grid")
 
-        # Set current selection
-        if self._current_grid_type == "none":
-            self.grid_list.setCurrentRow(0)
-        elif self._current_grid_type == "3x3":
-            self.grid_list.setCurrentRow(1)
+        # Populate grid types from GRID_TYPES definition
+        for display_name, _ in self.GRID_TYPES:
+            self.grid_list.addItem(display_name)
+
+        # Set current selection based on grid type value
+        current_index = self._get_grid_type_index(self._current_grid_type)
+        if current_index >= 0:
+            self.grid_list.setCurrentRow(current_index)
 
         self.grid_list.currentRowChanged.connect(self._on_grid_type_changed)
         main_layout.addWidget(self.grid_list)
@@ -138,21 +155,52 @@ class GridSettingsDialog(QFrame):
         self.decrease_btn.setEnabled(self._current_width > self.MIN_LINE_WIDTH)
         self.increase_btn.setEnabled(self._current_width < self.MAX_LINE_WIDTH)
 
+    def _get_grid_type_index(self, grid_type: str) -> int:
+        """
+        Get the list index for a given grid type value.
+
+        Args:
+            grid_type: The grid type value to find.
+
+        Returns:
+            int: The index in GRID_TYPES, or -1 if not found.
+        """
+        for index, (_, value) in enumerate(self.GRID_TYPES):
+            if value == grid_type:
+                return index
+        return -1
+
+    def _get_grid_type_value(self, index: int) -> str:
+        """
+        Get the grid type value for a given list index.
+
+        Args:
+            index: The index in the grid type list.
+
+        Returns:
+            str: The grid type value, or GRID_TYPE_NONE if index is invalid.
+        """
+        if 0 <= index < len(self.GRID_TYPES):
+            return self.GRID_TYPES[index][1]
+        return GRID_TYPE_NONE
+
     def _on_grid_type_changed(self, row: int) -> None:
-        """Handle grid type selection change."""
-        if row == 0:
-            self._current_grid_type = "none"
-            self.grid_type_changed.emit("none")
-        elif row == 1:
-            self._current_grid_type = "3x3"
-            self.grid_type_changed.emit("3x3")
+        """
+        Handle grid type selection change.
+
+        Args:
+            row: The selected row index in the list widget.
+        """
+        grid_type = self._get_grid_type_value(row)
+        self._current_grid_type = grid_type
+        self.grid_type_changed.emit(grid_type)
 
     def get_current_grid_type(self) -> str:
         """
         Get the currently selected grid type.
 
         Returns:
-            str: The current grid type ("none" or "3x3").
+            str: The current grid type (e.g., GridType.NONE or GridType.GRID_3X3).
         """
         return self._current_grid_type
 
