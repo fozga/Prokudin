@@ -32,6 +32,7 @@ from .handlers.display import show_combined_image, show_single_channel_image, up
 from .handlers.image_saving import save_image_with_dialog
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
+from .widgets.grid_settings_dialog import GridSettingsDialog
 from .widgets.image_viewer import ImageViewer
 from .widgets.status_bar import StatusBarHandler
 
@@ -83,6 +84,9 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         self.crop_mode = DefaultState.CROP_MODE
         self.crop_rect: Union[QRect, None] = None
         self.crop_ratio: Union[tuple[int, int], None] = None
+
+        # Grid settings dialog (initially None, created on demand)
+        self.grid_settings_dialog: Union[GridSettingsDialog, None] = None
 
         self.init_ui()
 
@@ -155,8 +159,19 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         crop_controls_layout.addWidget(self.cancel_crop_btn)
         self.crop_controls_widget.setVisible(False)
 
-        # Main vertical layout for left side (crop button + crop controls + image viewer)
-        left_panel = QVBoxLayout()
+        # Left sidebar for tool buttons
+        left_sidebar = QVBoxLayout()
+        left_sidebar.addStretch()  # Push button to bottom
+
+        # Grid button at the bottom
+        self.grid_btn = QPushButton("Grid")
+        self.grid_btn.clicked.connect(self.open_grid_settings)
+        left_sidebar.addWidget(self.grid_btn)
+
+        main_layout.addLayout(left_sidebar, 5)
+
+        # Center panel for image viewer
+        center_panel = QVBoxLayout()
 
         # Create a horizontal layout for the buttons
         buttons_layout = QHBoxLayout()
@@ -164,13 +179,13 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         buttons_layout.addWidget(self.save_btn)
         buttons_layout.addWidget(self.crop_mode_btn)
 
-        # Add the buttons layout to the left panel instead of just the crop button
-        left_panel.addLayout(buttons_layout)
-        left_panel.addWidget(self.crop_controls_widget)
+        # Add the buttons layout to the center panel
+        center_panel.addLayout(buttons_layout)
+        center_panel.addWidget(self.crop_controls_widget)
         self.viewer = ImageViewer()
-        left_panel.addWidget(self.viewer, 70)
+        center_panel.addWidget(self.viewer, 70)
 
-        main_layout.addLayout(left_panel, 70)
+        main_layout.addLayout(center_panel, 70)
 
         # Right panel with channel controllers
         right_panel = QVBoxLayout()
@@ -567,6 +582,83 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
 
         # Show status message
         self.status_handler.set_message("Application reset to default state", self.status_handler.MEDIUM_TIMEOUT)
+
+    def open_grid_settings(self) -> None:
+        """
+        Open the grid settings dialog as an overlay.
+
+        Returns:
+            None
+        """
+        if self.grid_settings_dialog is None:
+            # Create dialog with current settings
+            current_width = self.viewer.grid_overlay.get_line_width()
+            current_type = "3x3" if self.viewer.grid_overlay.is_enabled() else "none"
+
+            self.grid_settings_dialog = GridSettingsDialog(
+                current_width=current_width, current_grid_type=current_type, parent=self
+            )
+
+            # Connect signals
+            self.grid_settings_dialog.grid_type_changed.connect(self.on_grid_type_changed)
+            self.grid_settings_dialog.line_width_changed.connect(self.on_grid_line_width_changed)
+
+        # Position the dialog above and to the right of the Grid button
+        # Get the top-left corner of the button in global coordinates
+        button_pos = self.grid_btn.mapToGlobal(self.grid_btn.rect().topLeft())
+
+        # Calculate position: bottom-left of dialog at top-left of button
+        # We need to move it up by the dialog height and right a bit
+        dialog_x = button_pos.x() + self.grid_btn.width() + 10  # To the right of button
+        dialog_y = button_pos.y() - self.grid_settings_dialog.height()  # Above the button
+
+        self.grid_settings_dialog.move(dialog_x, dialog_y)
+
+        # Show the dialog
+        self.grid_settings_dialog.show()
+        self.grid_settings_dialog.raise_()
+
+    def on_grid_type_changed(self, grid_type: str) -> None:
+        """
+        Handle grid type selection change.
+
+        Args:
+            grid_type: The selected grid type ("none" or "3x3").
+
+        Returns:
+            None
+        """
+        if grid_type == "none":
+            # Disable grid overlay
+            self.viewer.grid_overlay.set_enabled(False)
+            self.viewer.crop_handler.grid_overlay.set_enabled(False)
+            self.status_handler.set_message("Grid overlay disabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == "3x3":
+            # Enable grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.crop_handler.grid_overlay.set_enabled(True)
+            self.status_handler.set_message("3x3 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+
+        # Refresh the display
+        self.viewer.viewport().update()
+
+    def on_grid_line_width_changed(self, width: int) -> None:
+        """
+        Handle grid line width change.
+
+        Args:
+            width: The new line width in pixels.
+
+        Returns:
+            None
+        """
+        # Update grid line width in both viewer and crop handler
+        self.viewer.grid_overlay.set_line_width(width)
+        self.viewer.crop_handler.grid_overlay.set_line_width(width)
+
+        # Refresh the display
+        self.viewer.viewport().update()
+        self.status_handler.set_message(f"Grid line width: {width}px", self.status_handler.SHORT_TIMEOUT)
 
     def update_save_button_state(self) -> None:
         """

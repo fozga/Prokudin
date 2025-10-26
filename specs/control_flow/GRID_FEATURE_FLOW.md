@@ -2,6 +2,101 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│                   User Clicks Grid Button                            │
+│                   (Left Sidebar)                                     │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+                  ┌────────────────────────┐
+                  │ open_grid_settings()   │
+                  └────────────┬───────────┘
+                               │
+                ┌──────────────┴──────────────┐
+                │                             │
+                ▼                             ▼
+   ┌─────────────────────┐       ┌─────────────────────────┐
+   │ Dialog exists?      │       │ Create dialog with      │
+   │ Yes: Show existing  │       │ current settings:       │
+   └──────────┬──────────┘       │ - Line width            │
+              │                  │ - Grid type (3x3/none)  │
+              │                  └────────────┬─────────────┘
+              │                               │
+              │                               ▼
+              │                  ┌─────────────────────────┐
+              │                  │ Connect signals:        │
+              │                  │ - grid_type_changed     │
+              │                  │ - line_width_changed    │
+              │                  └────────────┬─────────────┘
+              │                               │
+              └───────────┬───────────────────┘
+                          │
+                          ▼
+              ┌──────────────────────────┐
+              │ Position dialog:         │
+              │ - Above Grid button      │
+              │ - To the right           │
+              │ - Bottom-left anchored   │
+              └──────────┬───────────────┘
+                          │
+                          ▼
+              ┌──────────────────────────┐
+              │ Show dialog overlay      │
+              └──────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                   Grid Settings Dialog Displayed                     │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                ┌──────────────┴──────────────┐
+                │                             │
+                ▼                             ▼
+   ┌─────────────────────┐       ┌─────────────────────────┐
+   │ User Changes        │       │ User Changes            │
+   │ Line Width          │       │ Grid Type               │
+   └──────────┬──────────┘       └────────────┬─────────────┘
+              │                               │
+              ▼                               ▼
+   ┌─────────────────────┐       ┌─────────────────────────┐
+   │ Click +/- buttons   │       │ Select from list:       │
+   │ Width: 1-10 pixels  │       │ - None                  │
+   └──────────┬──────────┘       │ - 3x3 Grid              │
+              │                  └────────────┬─────────────┘
+              │                               │
+              ▼                               ▼
+   ┌─────────────────────────────┐ ┌─────────────────────────────┐
+   │ line_width_changed signal   │ │ grid_type_changed signal    │
+   └──────────┬──────────────────┘ └────────────┬─────────────────┘
+              │                                  │
+              ▼                                  ▼
+   ┌─────────────────────────────┐ ┌─────────────────────────────┐
+   │ on_grid_line_width_changed()│ │ on_grid_type_changed()      │
+   └──────────┬──────────────────┘ └────────────┬─────────────────┘
+              │                                  │
+              └──────────────┬───────────────────┘
+                             │
+                             ▼
+              ┌──────────────────────────────┐
+              │ Update Grid Overlays         │
+              │ - viewer.grid_overlay        │
+              │ - crop_handler.grid_overlay  │
+              └──────────┬───────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────────────┐
+              │ Refresh viewport             │
+              │ viewport().update()          │
+              └──────────┬───────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────────────┐
+              │ Grid updated on screen       │
+              └──────────────────────────────┘
+```
+
+## Main Application Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
 │                   Application Displays Image                         │
 └──────────────────────────────┬──────────────────────────────────────┘
                                │
@@ -39,6 +134,12 @@
                          │
                          ▼
               ┌──────────────────────────────┐
+              │ Check if enabled             │
+              │ (grid_type != "none")        │
+              └──────────┬───────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────────────┐
               │ _calculate_grid_lines(rect)  │
               │                              │
               │ Calculate dimensions:        │
@@ -58,7 +159,7 @@
               │                              │
               │ Configure pen:               │
               │ • color = white              │
-              │ • width = 3 pixels           │
+              │ • width = user-set (1-10px)  │
               │ • opacity = 128 (50%)        │
               │ • style = solid              │
               │                              │
@@ -75,7 +176,50 @@
 
 ## User Interaction Flows
 
-### Flow 1: Grid in Normal View Mode
+### Flow 1: Opening and Using Grid Settings
+
+```
+User Action                          System Response
+───────────                          ───────────────
+
+Click Grid Button               →    Call open_grid_settings()
+                                     Check if dialog exists
+                                     Get current width & type
+                                     Position dialog above button
+                                     Show dialog overlay
+
+Click + Button                  →    Increase line width by 1
+                                     Update display label
+                                     Emit line_width_changed signal
+                                     Update both grid overlays
+                                     Refresh viewport
+                                     Show status message
+
+Click - Button                  →    Decrease line width by 1
+                                     Update display label
+                                     Emit line_width_changed signal
+                                     Update both grid overlays
+                                     Refresh viewport
+                                     Show status message
+
+Select "None"                   →    Emit grid_type_changed("none")
+                                     Disable viewer grid
+                                     Disable crop handler grid
+                                     Refresh viewport
+                                     Show "Grid overlay disabled"
+
+Select "3x3 Grid"               →    Emit grid_type_changed("3x3")
+                                     Enable viewer grid
+                                     Enable crop handler grid
+                                     Refresh viewport
+                                     Show "3x3 grid overlay enabled"
+
+Click Outside Dialog            →    Dialog closes automatically
+                                     Settings remain applied
+                                     Grid continues with current settings
+```
+
+### Flow 2: Grid in Normal View Mode
 
 ```
 User Action                          System Response
@@ -103,7 +247,7 @@ Switch Channels                 →    Update displayed image
                                      Grid maintains position
 ```
 
-### Flow 2: Grid in Crop Mode
+### Flow 3: Grid in Crop Mode
 
 ```
 User Action                          System Response

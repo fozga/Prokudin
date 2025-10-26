@@ -79,6 +79,26 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
         # Initialize grid overlay
         self._grid_overlay = GridOverlay()
 
+    @property
+    def grid_overlay(self) -> GridOverlay:
+        """
+        Get the grid overlay instance.
+
+        Returns:
+            GridOverlay: The grid overlay instance.
+        """
+        return self._grid_overlay
+
+    @property
+    def crop_handler(self) -> "CropHandler":
+        """
+        Get the crop handler instance.
+
+        Returns:
+            CropHandler: The crop handler instance.
+        """
+        return self._crop_handler
+
     def toggle_view(self) -> None:
         """
         Toggles between fit-to-view and manual zoom modes.
