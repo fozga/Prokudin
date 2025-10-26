@@ -42,7 +42,7 @@ from .handlers.display import show_combined_image, show_single_channel_image, up
 from .handlers.image_saving import save_image_with_dialog
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
-from .widgets.grid_settings_dialog import GRID_TYPE_3X3, GRID_TYPE_NONE, GridSettingsDialog
+from .widgets.grid_settings_dialog import GRID_TYPE_3X3, GRID_TYPE_GOLDEN_RATIO, GRID_TYPE_NONE, GridSettingsDialog
 from .widgets.image_viewer import ImageViewer
 from .widgets.status_bar import StatusBarHandler
 
@@ -603,7 +603,12 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         if self.grid_settings_dialog is None:
             # Create dialog with current settings
             current_width = self.viewer.grid_overlay.get_line_width()
-            current_type = GRID_TYPE_3X3 if self.viewer.grid_overlay.is_enabled() else GRID_TYPE_NONE
+
+            # Determine current grid type
+            if self.viewer.grid_overlay.is_enabled():
+                current_type = self.viewer.grid_overlay.get_grid_type()
+            else:
+                current_type = GRID_TYPE_NONE
 
             self.grid_settings_dialog = GridSettingsDialog(
                 current_width=current_width, current_grid_type=current_type, parent=self
@@ -669,9 +674,15 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             self.viewer.grid_overlay.set_enabled(False)
             self.status_handler.set_message("Grid overlay disabled", self.status_handler.SHORT_TIMEOUT)
         elif grid_type == GRID_TYPE_3X3:
-            # Enable grid overlay
+            # Enable 3x3 grid overlay
             self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
             self.status_handler.set_message("3x3 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_GOLDEN_RATIO:
+            # Enable golden ratio grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message("Golden ratio grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
 
         # Refresh the display
         self.viewer.viewport().update()
