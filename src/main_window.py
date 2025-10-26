@@ -667,12 +667,10 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         if grid_type == GRID_TYPE_NONE:
             # Disable grid overlay
             self.viewer.grid_overlay.set_enabled(False)
-            self.viewer.crop_handler.grid_overlay.set_enabled(False)
             self.status_handler.set_message("Grid overlay disabled", self.status_handler.SHORT_TIMEOUT)
         elif grid_type == GRID_TYPE_3X3:
             # Enable grid overlay
             self.viewer.grid_overlay.set_enabled(True)
-            self.viewer.crop_handler.grid_overlay.set_enabled(True)
             self.status_handler.set_message("3x3 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
 
         # Refresh the display
@@ -688,9 +686,8 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
         Returns:
             None
         """
-        # Update grid line width in both viewer and crop handler
+        # Update grid line width (shared between viewer and crop handler)
         self.viewer.grid_overlay.set_line_width(width)
-        self.viewer.crop_handler.grid_overlay.set_line_width(width)
 
         # Refresh the display
         self.viewer.viewport().update()
