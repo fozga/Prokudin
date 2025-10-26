@@ -76,9 +76,9 @@
                              │
                              ▼
               ┌──────────────────────────────┐
-              │ Update Grid Overlays         │
+              │ Update Grid Overlay          │
+              │ (shared instance)            │
               │ - viewer.grid_overlay        │
-              │ - crop_handler.grid_overlay  │
               └──────────┬───────────────────┘
                          │
                          ▼

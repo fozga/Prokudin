@@ -74,8 +74,14 @@ class CropHandler:  # pylint: disable=too-many-public-methods
     - Drawing crop overlay and handles
     """
 
-    def __init__(self, view: QGraphicsView) -> None:
-        """Initialize the crop handler."""
+    def __init__(self, view: QGraphicsView, grid_overlay: GridOverlay) -> None:
+        """
+        Initialize the crop handler.
+
+        Args:
+            view: The QGraphicsView instance.
+            grid_overlay: Shared GridOverlay instance from the viewer.
+        """
         self.view = view
         # Group related attributes into dictionaries
         self._state = {
@@ -97,18 +103,8 @@ class CropHandler:  # pylint: disable=too-many-public-methods
         }
         self._crop_ratio: Union[tuple[int, int], None] = None  # Keep this separate as it's used frequently
 
-        # Initialize grid overlay for crop area
-        self._grid_overlay = GridOverlay()
-
-    @property
-    def grid_overlay(self) -> GridOverlay:
-        """
-        Get the grid overlay instance.
-
-        Returns:
-            GridOverlay: The grid overlay instance for crop area.
-        """
-        return self._grid_overlay
+        # Use shared grid overlay instance from viewer
+        self._grid_overlay = grid_overlay
 
     def set_crop_mode(self, enabled: bool, photo: Union[QGraphicsPixmapItem, None]) -> None:
         """

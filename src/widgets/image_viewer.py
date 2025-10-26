@@ -73,11 +73,11 @@ class ImageViewer(QGraphicsView):  # pylint: disable=too-many-instance-attribute
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
 
-        # Initialize crop handler
-        self._crop_handler = CropHandler(self)
-
-        # Initialize grid overlay
+        # Initialize grid overlay (shared between viewer and crop handler)
         self._grid_overlay = GridOverlay()
+
+        # Initialize crop handler with shared grid overlay
+        self._crop_handler = CropHandler(self, self._grid_overlay)
 
     @property
     def grid_overlay(self) -> GridOverlay:

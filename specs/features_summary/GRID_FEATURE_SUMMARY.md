@@ -98,10 +98,14 @@ Enhanced the foreground drawing method to include grid overlay:
 ### 4. Modified: `src/widgets/crop_handler.py`
 
 #### Constructor Changes
-- Added `self._grid_overlay = GridOverlay()` to initialize grid overlay instance for crop mode
+- **Now accepts a shared `grid_overlay` parameter** instead of creating its own instance
+- Stores reference as `self._grid_overlay` to the shared GridOverlay from the viewer
+- This eliminates duplication and ensures consistent grid state across viewer and crop modes
 
-#### New Property
-- Added `@property grid_overlay` - Public property to access the grid overlay for crop area
+#### Architecture Change
+- **Removed the `@property grid_overlay`** - No longer needed since grid state is managed centrally
+- The crop handler uses the shared grid overlay internally via `self._grid_overlay`
+- Grid state changes in the viewer automatically apply to crop mode (same instance)
 
 #### Modified Method: `draw_foreground()`
 Enhanced the crop mode drawing to include grid within crop rectangle:
@@ -153,18 +157,31 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
 - Dialog appears at: button top-left + button width + 10px right, button top - dialog height
 
 **`on_grid_type_changed(grid_type: str)`**
+**`on_grid_type_changed(grid_type: str)`**
 - Handles grid type selection changes from dialog
-- Enables/disables grid overlay in both viewer and crop handler
+- Enables/disables the shared grid overlay in viewer (automatically applies to crop mode)
 - Updates status bar with current grid state
 - Refreshes viewport to show changes immediately
 
 **`on_grid_line_width_changed(width: int)`**
 - Handles line width changes from dialog
-- Updates grid line width in both viewer and crop handler
+- Updates line width in the shared grid overlay (automatically applies to both modes)
 - Refreshes viewport to show changes immediately
 - Displays new width in status bar
 
-## Technical Details
+## Architecture
+
+### Shared Grid Overlay Design
+- **Single Source of Truth:** Only one `GridOverlay` instance exists (owned by `ImageViewer`)
+- **Shared Reference:** `CropHandler` receives and uses the same instance
+- **Benefits:**
+  - No synchronization issues between viewer and crop modes
+  - Simpler state management - changes apply everywhere automatically
+  - Easier to extend with new grid types or features
+  - Reduced memory footprint
+  - More maintainable codebase
+
+### Technical Details
 
 ### Coordinate System
 - Grid uses scene coordinates for consistency
@@ -185,10 +202,11 @@ Enhanced the crop mode drawing to include grid within crop rectangle:
 
 ### Public API
 To avoid accessing protected members, public properties were added:
-- `ImageViewer.grid_overlay` - Access to viewer's grid overlay
+- `ImageViewer.grid_overlay` - Access to the shared grid overlay instance
 - `ImageViewer.crop_handler` - Access to crop handler
-- `CropHandler.grid_overlay` - Access to crop area's grid overlay
 - `GridOverlay.get_line_width()` - Get current line width
+
+Note: The `CropHandler` no longer exposes a `grid_overlay` property since it uses the shared instance from the viewer. All grid state management is centralized in `MainWindow` through the viewer's grid overlay.
 
 ## User Experience
 
