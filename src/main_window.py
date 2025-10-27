@@ -42,7 +42,21 @@ from .handlers.display import show_combined_image, show_single_channel_image, up
 from .handlers.image_saving import save_image_with_dialog
 from .handlers.keyboard import handle_key_press
 from .widgets.channel_controller import ChannelController
-from .widgets.grid_settings_dialog import GRID_TYPE_3X3, GRID_TYPE_GOLDEN_RATIO, GRID_TYPE_NONE, GridSettingsDialog
+from .widgets.grid_settings_dialog import (
+    GRID_TYPE_3X3,
+    GRID_TYPE_DIAGONAL_1_1,
+    GRID_TYPE_DIAGONAL_2_3,
+    GRID_TYPE_DIAGONAL_3_2,
+    GRID_TYPE_DIAGONAL_3_4,
+    GRID_TYPE_DIAGONAL_4_3,
+    GRID_TYPE_DIAGONAL_GOLDEN_H,
+    GRID_TYPE_DIAGONAL_GOLDEN_V,
+    GRID_TYPE_DIAGONAL_THIRDS_H,
+    GRID_TYPE_DIAGONAL_THIRDS_V,
+    GRID_TYPE_GOLDEN_RATIO,
+    GRID_TYPE_NONE,
+    GridSettingsDialog,
+)
 from .widgets.image_viewer import ImageViewer
 from .widgets.status_bar import StatusBarHandler
 
@@ -683,6 +697,59 @@ class MainWindow(QMainWindow):  # pylint: disable=too-many-instance-attributes
             self.viewer.grid_overlay.set_enabled(True)
             self.viewer.grid_overlay.set_grid_type(grid_type)
             self.status_handler.set_message("Golden ratio grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_DIAGONAL_1_1:
+            # Enable diagonal 1:1 grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message("Diagonal 1:1 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_DIAGONAL_2_3:
+            # Enable diagonal 2:3 grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message("Diagonal 2:3 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_DIAGONAL_3_2:
+            # Enable diagonal 3:2 grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message("Diagonal 3:2 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_DIAGONAL_3_4:
+            # Enable diagonal 3:4 grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message("Diagonal 3:4 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_DIAGONAL_4_3:
+            # Enable diagonal 4:3 grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message("Diagonal 4:3 grid overlay enabled", self.status_handler.SHORT_TIMEOUT)
+        elif grid_type == GRID_TYPE_DIAGONAL_THIRDS_V:
+            # Enable diagonal + thirds vertical grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message(
+                "Diagonal + thirds V grid overlay enabled", self.status_handler.SHORT_TIMEOUT
+            )
+        elif grid_type == GRID_TYPE_DIAGONAL_THIRDS_H:
+            # Enable diagonal + thirds horizontal grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message(
+                "Diagonal + thirds H grid overlay enabled", self.status_handler.SHORT_TIMEOUT
+            )
+        elif grid_type == GRID_TYPE_DIAGONAL_GOLDEN_V:
+            # Enable diagonal + golden vertical grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message(
+                "Diagonal + golden V grid overlay enabled", self.status_handler.SHORT_TIMEOUT
+            )
+        elif grid_type == GRID_TYPE_DIAGONAL_GOLDEN_H:
+            # Enable diagonal + golden horizontal grid overlay
+            self.viewer.grid_overlay.set_enabled(True)
+            self.viewer.grid_overlay.set_grid_type(grid_type)
+            self.status_handler.set_message(
+                "Diagonal + golden H grid overlay enabled", self.status_handler.SHORT_TIMEOUT
+            )
 
         # Refresh the display
         self.viewer.viewport().update()
